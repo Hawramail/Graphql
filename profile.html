@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>GraphQL Profile - Dashboard</title>
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body class="page page-profile">
+    <header class="topbar">
+      <div>
+        <h1 class="topbar-title">My GraphQL Profile</h1>
+        <p class="topbar-subtitle">
+          Welcome, <span id="user-login">Loading...</span>
+        </p>
+      </div>
+      <button id="logout-btn" class="btn btn-secondary">Logout</button>
+    </header>
+
+    <main class="dashboard">
+      <section class="grid">
+        <article class="card stat-card">
+          <h2 class="section-title">Basic Information</h2>
+          <div class="info-list">
+            <p><span class="info-label">User ID:</span> <span id="user-id">-</span></p>
+            <p><span class="info-label">Login:</span> <span id="user-login-card">-</span></p>
+          </div>
+        </article>
+
+        <article class="card stat-card">
+          <h2 class="section-title">XP Summary</h2>
+          <div class="info-list">
+            <p><span class="info-label">Total XP:</span> <span id="total-xp">0</span></p>
+            <p><span class="info-label">XP Transactions:</span> <span id="xp-projects">0</span></p>
+          </div>
+        </article>
+
+        <article class="card stat-card">
+          <h2 class="section-title">Progress Summary</h2>
+          <div class="info-list">
+            <p><span class="info-label">Pass:</span> <span id="pass-count">0</span></p>
+            <p><span class="info-label">Fail:</span> <span id="fail-count">0</span></p>
+            <p><span class="info-label">Total Attempts:</span> <span id="total-attempts">0</span></p>
+          </div>
+        </article>
+
+        <article class="card results-card">
+          <h2 class="section-title">Recent Results</h2>
+          <ul id="recent-results-list" class="results-list"></ul>
+        </article>
+      </section>
+
+      <section class="graphs-section">
+        <article class="card graph-card">
+          <h2 class="section-title">XP Over Time</h2>
+          <svg
+            id="xp-graph"
+            viewBox="0 0 700 260"
+            class="graph-svg"
+            role="img"
+            aria-label="XP over time graph"
+          ></svg>
+        </article>
+
+        <article class="card graph-card">
+          <h2 class="section-title">Pass vs Fail Ratio</h2>
+          <svg
+            id="passfail-graph"
+            viewBox="0 0 420 260"
+            class="graph-svg"
+            role="img"
+            aria-label="Pass versus fail graph"
+          ></svg>
+        </article>
+      </section>
+
+      <p id="global-error" class="error-message page-error" aria-live="polite"></p>
+    </main>
+
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/graphs.js"></script>
+    <script src="js/profile.js"></script>
+  </body>
+</html>
