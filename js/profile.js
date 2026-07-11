@@ -60,13 +60,13 @@ function renderXpSummary(xpRows) {
     ? xpRows.reduce((sum, row) => sum + (Number(row.amount) || 0), 0)
     : 0;
 
-  setText('total-xp', totalXp.toLocaleString());
+  setText('total-xp', formatXp(totalXp, { compact: true }));
 }
 
 function renderAuditSummary(stats) {
   setText('audit-ratio', Number(stats.ratio || 0).toFixed(2));
-  setText('audit-up', Number(stats.up || 0).toLocaleString());
-  setText('audit-down', Number(stats.down || 0).toLocaleString());
+  setText('audit-up', formatXp(stats.up || 0, { compact: true }));
+  setText('audit-down', formatXp(stats.down || 0, { compact: true }));
 }
 
 function setText(id, value) {
