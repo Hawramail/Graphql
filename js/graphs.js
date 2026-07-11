@@ -1,35 +1,28 @@
 function createSvgElement(tag, attrs = {}) {
   const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
-
-  for (const key in attrs) {
-    el.setAttribute(key, attrs[key]);
-  }
-
+  Object.entries(attrs).forEach(([key, value]) => el.setAttribute(key, value));
   return el;
 }
 
 function clearSvg(svg) {
-  while (svg.firstChild) {
-    svg.removeChild(svg.firstChild);
-  }
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
 }
 
-function getProjectName(path) {
-  if (!path) return 'Unknown project';
+function formatProjectName(path, fallback) {
+  if (!path) return fallback || 'Unknown project';
 
-  const cleanPath = String(path).replace(/\/$/, '');
-  const parts = cleanPath.split('/').filter(Boolean);
-  const lastPart = parts[parts.length - 1] || cleanPath;
+  const parts = String(path).replace(/\/$/, '').split('/').filter(Boolean);
+  const rawName = parts[parts.length - 1] || fallback || 'Unknown project';
 
-  return lastPart
+  return rawName
     .replace(/[-_]/g, ' ')
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
 function buildXpByProject(transactions) {
-  if (!Array.isArray(transactions)) return [];
-
   const projects = new Map();
+
+  if (!Array.isArray(transactions)) return [];
 
   transactions.forEach((tx) => {
     const amount = Number(tx.amount) || 0;
@@ -37,7 +30,7 @@ function buildXpByProject(transactions) {
 
     const key = tx.objectId || tx.path || tx.id;
     const current = projects.get(key) || {
-      name: getProjectName(tx.path),
+      name: formatProjectName(tx.path, `Project ${tx.objectId || tx.id}`),
       path: tx.path || '',
       xp: 0,
     };
@@ -49,38 +42,14 @@ function buildXpByProject(transactions) {
   return [...projects.values()].sort((a, b) => b.xp - a.xp).slice(0, 12);
 }
 
-function computeAuditRatio(auditRows) {
-  let up = 0;
-  let down = 0;
-
-  if (Array.isArray(auditRows)) {
-    auditRows.forEach((row) => {
-      const amount = Math.abs(Number(row.amount) || 0);
-
-      if (row.type === 'up') {
-        up += amount;
-      } else if (row.type === 'down') {
-        down += amount;
-      }
-    });
-  }
-
-  return {
-    up,
-    down,
-    ratio: down === 0 ? (up > 0 ? up : 0) : up / down,
-  };
-}
-
 function addNoDataMessage(svg, width, height, message) {
   const text = createSvgElement('text', {
     x: width / 2,
     y: height / 2,
     'text-anchor': 'middle',
     'font-size': '18',
-    fill: 'currentColor',
+    class: 'chart-empty',
   });
-
   text.textContent = message;
   svg.appendChild(text);
 }
@@ -93,50 +62,48 @@ function renderXpByProjectGraph(projects) {
 
   const width = 900;
   const height = 420;
-  const left = 180;
-  const right = 48;
+  const left = 190;
+  const right = 55;
   const top = 28;
-  const barHeight = 22;
+  const barHeight = 23;
   const gap = 10;
+  const usableWidth = width - left - right;
 
   if (!projects || projects.length === 0) {
-    addNoDataMessage(svg, width, height, 'No project XP data available');
+    addNoDataMessage(svg, width, height, 'No XP project data found');
     return;
   }
 
   const maxXp = Math.max(...projects.map((project) => project.xp), 1);
-  const usableWidth = width - left - right;
 
   projects.forEach((project, index) => {
     const y = top + index * (barHeight + gap);
-    const barWidth = (project.xp / maxXp) * usableWidth;
+    const barWidth = Math.max((project.xp / maxXp) * usableWidth, 4);
 
     const label = createSvgElement('text', {
       x: left - 14,
-      y: y + barHeight / 2 + 5,
+      y: y + 16,
       'text-anchor': 'end',
-      'font-size': '13',
-      fill: 'currentColor',
+      class: 'chart-label',
     });
-    label.textContent = project.name.length > 22 ? `${project.name.slice(0, 22)}...` : project.name;
+    label.textContent = project.name.length > 24 ? `${project.name.slice(0, 24)}...` : project.name;
     svg.appendChild(label);
 
-    const track = createSvgElement('rect', {
+    svg.appendChild(createSvgElement('rect', {
       x: left,
       y,
       width: usableWidth,
       height: barHeight,
-      rx: 11,
+      rx: 12,
       class: 'chart-track',
-    });
-    svg.appendChild(track);
+    }));
 
     const bar = createSvgElement('rect', {
       x: left,
       y,
-      width: Math.max(barWidth, 4),
+      width: barWidth,
       height: barHeight,
-      rx: 11,
+      rx: 12,
       class: 'chart-bar',
     });
 
@@ -147,9 +114,8 @@ function renderXpByProjectGraph(projects) {
 
     const value = createSvgElement('text', {
       x: left + Math.min(barWidth + 12, usableWidth - 80),
-      y: y + barHeight / 2 + 5,
-      'font-size': '12',
-      fill: 'currentColor',
+      y: y + 16,
+      class: 'chart-value',
     });
     value.textContent = project.xp.toLocaleString();
     svg.appendChild(value);
@@ -165,75 +131,67 @@ function renderAuditRatioGraph(data) {
   const width = 520;
   const height = 420;
   const centerX = width / 2;
-  const centerY = 185;
-  const radius = 112;
-  const circumference = 2 * Math.PI * radius;
+  const centerY = 178;
+  const radius = 108;
   const total = data.up + data.down;
-  const upFraction = total === 0 ? 0 : data.up / total;
 
-  if (total === 0) {
-    addNoDataMessage(svg, width, height, 'No audit data available');
+  if (total <= 0) {
+    addNoDataMessage(svg, width, height, 'No audit data found');
     return;
   }
 
-  const background = createSvgElement('circle', {
+  const circumference = 2 * Math.PI * radius;
+  const doneFraction = data.up / total;
+
+  svg.appendChild(createSvgElement('circle', {
     cx: centerX,
     cy: centerY,
     r: radius,
-    fill: 'none',
     class: 'donut-track',
-  });
-  svg.appendChild(background);
+  }));
 
-  const progress = createSvgElement('circle', {
+  svg.appendChild(createSvgElement('circle', {
     cx: centerX,
     cy: centerY,
     r: radius,
-    fill: 'none',
     class: 'donut-progress',
-    'stroke-dasharray': `${circumference * upFraction} ${circumference}`,
+    'stroke-dasharray': `${circumference * doneFraction} ${circumference}`,
     transform: `rotate(-90 ${centerX} ${centerY})`,
-  });
-  svg.appendChild(progress);
+  }));
 
-  const ratioText = createSvgElement('text', {
+  const ratio = createSvgElement('text', {
     x: centerX,
-    y: centerY - 4,
+    y: centerY - 2,
     'text-anchor': 'middle',
-    'font-size': '44',
-    'font-weight': '800',
-    fill: 'currentColor',
+    class: 'donut-number',
   });
-  ratioText.textContent = data.ratio.toFixed(2);
-  svg.appendChild(ratioText);
+  ratio.textContent = data.ratio.toFixed(2);
+  svg.appendChild(ratio);
 
-  const ratioLabel = createSvgElement('text', {
+  const label = createSvgElement('text', {
     x: centerX,
-    y: centerY + 28,
+    y: centerY + 30,
     'text-anchor': 'middle',
-    'font-size': '13',
-    fill: 'currentColor',
+    class: 'donut-label',
   });
-  ratioLabel.textContent = 'audit ratio';
-  svg.appendChild(ratioLabel);
+  label.textContent = 'audit ratio';
+  svg.appendChild(label);
 
-  const upLabel = createSvgElement('text', {
-    x: centerX - 95,
-    y: 355,
+  const done = createSvgElement('text', {
+    x: centerX - 105,
+    y: 350,
     'text-anchor': 'middle',
-    'font-size': '14',
-    fill: 'currentColor',
+    class: 'chart-label',
   });
-  upLabel.textContent = `Done: ${data.up.toLocaleString()}`;
-  svg.appendChild(upLabel);
+  done.textContent = `Done: ${data.up.toLocaleString()}`;
+  svg.appendChild(done);
 
-  const downLabel = createSvgElement('text', {
-    x: centerX + 95,
-    y: 355,
+  const received = createSvgElement('text', {
+    x: centerX + 105,
+    y: 350,
     'text-anchor': 'middle',
-    'font-size': '14',
-    fill: 'currentColor',
+    class: 'chart-label',
   });
-  downLabel.textContent = `Received: ${data.down.toLocaleString()}`;
-  svg.appendChild(downLabel);
+  received.textContent = `Received: ${data.down.toLocaleString()}`;
+  svg.appendChild(received);
 }

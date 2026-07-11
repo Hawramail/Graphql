@@ -1,8 +1,6 @@
 async function gql(query, variables = {}) {
   const token = localStorage.getItem('jwt');
 
-  console.log('JWT being sent:', localStorage.getItem('jwt'));
-
   if (!token) {
     throw new Error('Not authenticated');
   }
@@ -13,16 +11,12 @@ async function gql(query, variables = {}) {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      query,
-      variables,
-    }),
+    body: JSON.stringify({ query, variables }),
   });
 
   const result = await response.json();
 
   if (!response.ok || result.errors) {
-    console.error('GraphQL error:', result);
     throw new Error(result?.errors?.[0]?.message || 'GraphQL request failed');
   }
 
@@ -60,7 +54,6 @@ async function getUserXp(userId) {
         id
         amount
         objectId
-        userId
         createdAt
         path
         type
@@ -73,23 +66,42 @@ async function getUserXp(userId) {
   return data.transaction || [];
 }
 
-async function getUserAuditTransactions(userId) {
+async function getUserAuditStats(userId) {
+  try {
+    const data = await gql(
+      `
+      query GetAuditStats($userId: Int!) {
+        user(where: { id: { _eq: $userId } }) {
+          auditRatio
+          totalUp
+          totalDown
+        }
+      }
+      `,
+      { userId }
+    );
+
+    const row = data.user?.[0];
+    if (row) {
+      const up = Number(row.totalUp) || 0;
+      const down = Number(row.totalDown) || 0;
+      const ratio = Number(row.auditRatio) || (down === 0 ? 0 : up / down);
+      return { up, down, ratio };
+    }
+  } catch (error) {
+    console.warn('Audit summary fields unavailable, falling back to transactions:', error.message);
+  }
+
   const data = await gql(
     `
-    query GetUserAuditTransactions($userId: Int!) {
+    query GetAuditTransactions($userId: Int!) {
       transaction(
         where: {
           userId: { _eq: $userId }
           type: { _in: ["up", "down"] }
         }
-        order_by: { createdAt: asc }
       ) {
-        id
         amount
-        objectId
-        userId
-        createdAt
-        path
         type
       }
     }
@@ -97,23 +109,18 @@ async function getUserAuditTransactions(userId) {
     { userId }
   );
 
-  return data.transaction || [];
-}
+  let up = 0;
+  let down = 0;
 
-async function getObjectById(objectId) {
-  const data = await gql(
-    `
-    query GetObjectById($objectId: Int!) {
-      object(where: { id: { _eq: $objectId } }) {
-        id
-        name
-        type
-        attrs
-      }
-    }
-    `,
-    { objectId }
-  );
+  (data.transaction || []).forEach((row) => {
+    const amount = Math.abs(Number(row.amount) || 0);
+    if (row.type === 'up') up += amount;
+    if (row.type === 'down') down += amount;
+  });
 
-  return data.object && data.object.length > 0 ? data.object[0] : null;
+  return {
+    up,
+    down,
+    ratio: down === 0 ? (up > 0 ? up : 0) : up / down,
+  };
 }

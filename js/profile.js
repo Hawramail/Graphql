@@ -9,63 +9,67 @@ document.addEventListener('DOMContentLoaded', () => {
   const logoutBtn = document.getElementById('logout-btn');
   const globalError = document.getElementById('global-error');
 
-  logoutBtn.addEventListener('click', () => {
-    localStorage.removeItem('jwt');
-    window.location.href = 'index.html';
-  });
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      localStorage.removeItem('jwt');
+      window.location.href = 'index.html';
+    });
+  }
 
   loadProfile(globalError);
 });
 
 async function loadProfile(globalError) {
   try {
+    setLoadingState(true);
+
     const user = await getCurrentUser();
     renderUserInfo(user);
 
-    const [xpRows, auditRows] = await Promise.all([
+    const [xpRows, auditStats] = await Promise.all([
       getUserXp(user.id),
-      getUserAuditTransactions(user.id),
+      getUserAuditStats(user.id),
     ]);
 
     renderXpSummary(xpRows);
-
-    const projectXp = buildXpByProject(xpRows);
-    renderXpByProjectGraph(projectXp);
-
-    const auditStats = computeAuditRatio(auditRows);
     renderAuditSummary(auditStats);
+    renderXpByProjectGraph(buildXpByProject(xpRows));
     renderAuditRatioGraph(auditStats);
+
+    if (globalError) globalError.textContent = '';
   } catch (error) {
     console.error('Profile loading error:', error);
-    globalError.textContent = error.message || 'Failed to load profile data.';
+    if (globalError) globalError.textContent = error.message || 'Failed to load profile data.';
+  } finally {
+    setLoadingState(false);
   }
+}
+
+function setLoadingState(isLoading) {
+  document.body.classList.toggle('is-loading', isLoading);
 }
 
 function renderUserInfo(user) {
-  const userLoginTop = document.getElementById('user-login');
-  const userId = document.getElementById('user-id');
-  const userLoginCard = document.getElementById('user-login-card');
-
-  if (userLoginTop) userLoginTop.textContent = user.login || '-';
-  if (userId) userId.textContent = user.id ?? '-';
-  if (userLoginCard) userLoginCard.textContent = user.login || '-';
+  setText('user-login', user.login || '-');
+  setText('user-id', user.id ?? '-');
+  setText('user-login-card', user.login || '-');
 }
 
 function renderXpSummary(xpRows) {
-  const totalXpEl = document.getElementById('total-xp');
-  const totalXp = xpRows.reduce((sum, row) => sum + (Number(row.amount) || 0), 0);
+  const totalXp = Array.isArray(xpRows)
+    ? xpRows.reduce((sum, row) => sum + (Number(row.amount) || 0), 0)
+    : 0;
 
-  if (totalXpEl) {
-    totalXpEl.textContent = totalXp.toLocaleString();
-  }
+  setText('total-xp', totalXp.toLocaleString());
 }
 
 function renderAuditSummary(stats) {
-  const auditRatioEl = document.getElementById('audit-ratio');
-  const auditUpEl = document.getElementById('audit-up');
-  const auditDownEl = document.getElementById('audit-down');
+  setText('audit-ratio', Number(stats.ratio || 0).toFixed(2));
+  setText('audit-up', Number(stats.up || 0).toLocaleString());
+  setText('audit-down', Number(stats.down || 0).toLocaleString());
+}
 
-  if (auditRatioEl) auditRatioEl.textContent = stats.ratio.toFixed(2);
-  if (auditUpEl) auditUpEl.textContent = stats.up.toLocaleString();
-  if (auditDownEl) auditDownEl.textContent = stats.down.toLocaleString();
+function setText(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = value;
 }

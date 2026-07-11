@@ -10,64 +10,52 @@
     <header class="topbar">
       <div>
         <p class="eyebrow">GraphQL Profile</p>
-        <h1 class="topbar-title">Dashboard</h1>
-        <p class="topbar-subtitle">Welcome back, <span id="user-login">Loading...</span></p>
+        <h1 class="topbar-title">Student Dashboard</h1>
+        <p class="topbar-subtitle">Signed in as <span id="user-login">Loading...</span></p>
       </div>
       <button id="logout-btn" class="btn btn-secondary">Logout</button>
     </header>
 
     <main class="dashboard">
       <section class="summary-grid" aria-label="Profile summary">
-        <article class="card hero-card">
+        <article class="panel identity-card">
           <p class="eyebrow">Student</p>
           <h2 id="user-login-card">-</h2>
-          <p>User ID <span id="user-id">-</span></p>
+          <p class="muted">User ID <span id="user-id">-</span></p>
         </article>
 
-        <article class="card metric-card">
+        <article class="panel metric-card">
           <p class="metric-label">Total XP</p>
           <strong id="total-xp">0</strong>
-          <span>earned from completed project XP</span>
+          <p class="muted">Total XP earned</p>
         </article>
 
-        <article class="card metric-card">
+        <article class="panel metric-card">
           <p class="metric-label">Audit Ratio</p>
           <strong id="audit-ratio">0.00</strong>
-          <span><span id="audit-up">0</span> up / <span id="audit-down">0</span> down</span>
+          <p class="muted"><span id="audit-up">0</span> done / <span id="audit-down">0</span> received</p>
         </article>
       </section>
 
-      <section class="graphs-section" aria-label="Dashboard charts">
-        <article class="card graph-card graph-card-wide">
-          <div class="card-heading">
+      <section class="charts-grid" aria-label="Dashboard charts">
+        <article class="panel chart-card chart-card-wide">
+          <div class="section-heading">
             <div>
               <p class="eyebrow">Projects</p>
               <h2 class="section-title">XP Added Per Project</h2>
             </div>
           </div>
-          <svg
-            id="xp-project-graph"
-            viewBox="0 0 900 420"
-            class="graph-svg"
-            role="img"
-            aria-label="XP added per project chart"
-          ></svg>
+          <svg id="xp-project-graph" viewBox="0 0 900 420" class="chart-svg" role="img" aria-label="XP added per project chart"></svg>
         </article>
 
-        <article class="card graph-card">
-          <div class="card-heading">
+        <article class="panel chart-card">
+          <div class="section-heading">
             <div>
               <p class="eyebrow">Audits</p>
               <h2 class="section-title">Audit Ratio</h2>
             </div>
           </div>
-          <svg
-            id="audit-ratio-graph"
-            viewBox="0 0 520 420"
-            class="graph-svg"
-            role="img"
-            aria-label="Audit ratio chart"
-          ></svg>
+          <svg id="audit-ratio-graph" viewBox="0 0 520 420" class="chart-svg" role="img" aria-label="Audit ratio chart"></svg>
         </article>
       </section>
 
