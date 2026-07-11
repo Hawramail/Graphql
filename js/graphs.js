@@ -1,44 +1,3 @@
-function buildXpOverTime(transactions) {
-  if (!Array.isArray(transactions)) return [];
-
-  const sorted = [...transactions].sort(
-    (a, b) => new Date(a.createdAt) - new Date(b.createdAt)
-  );
-
-  let runningTotal = 0;
-
-  return sorted.map((tx) => {
-    runningTotal += Number(tx.amount) || 0;
-    return {
-      date: new Date(tx.createdAt),
-      totalXp: runningTotal,
-      amount: Number(tx.amount) || 0,
-      path: tx.path || '',
-    };
-  });
-}
-
-function computePassFail(progressRows) {
-  let pass = 0;
-  let fail = 0;
-
-  if (!Array.isArray(progressRows)) {
-    return { pass, fail };
-  }
-
-  for (const row of progressRows) {
-    const grade = Number(row.grade);
-
-    if (grade === 1) {
-      pass++;
-    } else if (grade === 0) {
-      fail++;
-    }
-  }
-
-  return { pass, fail };
-}
-
 function createSvgElement(tag, attrs = {}) {
   const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
 
@@ -55,257 +14,226 @@ function clearSvg(svg) {
   }
 }
 
-function renderXpGraph(points) {
-  const svg = document.getElementById('xp-graph');
+function getProjectName(path) {
+  if (!path) return 'Unknown project';
+
+  const cleanPath = String(path).replace(/\/$/, '');
+  const parts = cleanPath.split('/').filter(Boolean);
+  const lastPart = parts[parts.length - 1] || cleanPath;
+
+  return lastPart
+    .replace(/[-_]/g, ' ')
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function buildXpByProject(transactions) {
+  if (!Array.isArray(transactions)) return [];
+
+  const projects = new Map();
+
+  transactions.forEach((tx) => {
+    const amount = Number(tx.amount) || 0;
+    if (amount <= 0) return;
+
+    const key = tx.objectId || tx.path || tx.id;
+    const current = projects.get(key) || {
+      name: getProjectName(tx.path),
+      path: tx.path || '',
+      xp: 0,
+    };
+
+    current.xp += amount;
+    projects.set(key, current);
+  });
+
+  return [...projects.values()].sort((a, b) => b.xp - a.xp).slice(0, 12);
+}
+
+function computeAuditRatio(auditRows) {
+  let up = 0;
+  let down = 0;
+
+  if (Array.isArray(auditRows)) {
+    auditRows.forEach((row) => {
+      const amount = Math.abs(Number(row.amount) || 0);
+
+      if (row.type === 'up') {
+        up += amount;
+      } else if (row.type === 'down') {
+        down += amount;
+      }
+    });
+  }
+
+  return {
+    up,
+    down,
+    ratio: down === 0 ? (up > 0 ? up : 0) : up / down,
+  };
+}
+
+function addNoDataMessage(svg, width, height, message) {
+  const text = createSvgElement('text', {
+    x: width / 2,
+    y: height / 2,
+    'text-anchor': 'middle',
+    'font-size': '18',
+    fill: 'currentColor',
+  });
+
+  text.textContent = message;
+  svg.appendChild(text);
+}
+
+function renderXpByProjectGraph(projects) {
+  const svg = document.getElementById('xp-project-graph');
   if (!svg) return;
 
   clearSvg(svg);
 
-  const width = 700;
-  const height = 260;
-  const padding = 40;
+  const width = 900;
+  const height = 420;
+  const left = 180;
+  const right = 48;
+  const top = 28;
+  const barHeight = 22;
+  const gap = 10;
 
-  if (!points || points.length === 0) {
-    const text = createSvgElement('text', {
-      x: width / 2,
-      y: height / 2,
-      'text-anchor': 'middle',
-      'font-size': '16',
-      fill: '#666',
-    });
-    text.textContent = 'No XP data available';
-    svg.appendChild(text);
+  if (!projects || projects.length === 0) {
+    addNoDataMessage(svg, width, height, 'No project XP data available');
     return;
   }
 
-  const minX = points[0].date.getTime();
-  const maxX = points[points.length - 1].date.getTime();
-  const maxY = Math.max(...points.map((p) => p.totalXp), 1);
+  const maxXp = Math.max(...projects.map((project) => project.xp), 1);
+  const usableWidth = width - left - right;
 
-  const scaleX = (value) => {
-    if (maxX === minX) return width / 2;
-    return padding + ((value - minX) / (maxX - minX)) * (width - padding * 2);
-  };
-
-  const scaleY = (value) => {
-    return height - padding - (value / maxY) * (height - padding * 2);
-  };
-
-  svg.appendChild(
-    createSvgElement('line', {
-      x1: padding,
-      y1: height - padding,
-      x2: width - padding,
-      y2: height - padding,
-      stroke: '#999',
-      'stroke-width': '1',
-    })
-  );
-
-  svg.appendChild(
-    createSvgElement('line', {
-      x1: padding,
-      y1: padding,
-      x2: padding,
-      y2: height - padding,
-      stroke: '#999',
-      'stroke-width': '1',
-    })
-  );
-
-  for (let i = 0; i <= 4; i++) {
-    const yValue = (maxY / 4) * i;
-    const y = scaleY(yValue);
-
-    svg.appendChild(
-      createSvgElement('line', {
-        x1: padding,
-        y1: y,
-        x2: width - padding,
-        y2: y,
-        stroke: '#eee',
-        'stroke-width': '1',
-      })
-    );
+  projects.forEach((project, index) => {
+    const y = top + index * (barHeight + gap);
+    const barWidth = (project.xp / maxXp) * usableWidth;
 
     const label = createSvgElement('text', {
-      x: padding - 8,
-      y: y + 4,
+      x: left - 14,
+      y: y + barHeight / 2 + 5,
       'text-anchor': 'end',
-      'font-size': '11',
-      fill: '#666',
+      'font-size': '13',
+      fill: 'currentColor',
     });
-    label.textContent = Math.round(yValue);
+    label.textContent = project.name.length > 22 ? `${project.name.slice(0, 22)}...` : project.name;
     svg.appendChild(label);
-  }
 
-  let pathData = '';
+    const track = createSvgElement('rect', {
+      x: left,
+      y,
+      width: usableWidth,
+      height: barHeight,
+      rx: 11,
+      class: 'chart-track',
+    });
+    svg.appendChild(track);
 
-  points.forEach((point, index) => {
-    const x = scaleX(point.date.getTime());
-    const y = scaleY(point.totalXp);
-
-    pathData += index === 0 ? `M ${x} ${y}` : ` L ${x} ${y}`;
-  });
-
-  const path = createSvgElement('path', {
-    d: pathData,
-    fill: 'none',
-    stroke: '#2563eb',
-    'stroke-width': '3',
-    'stroke-linejoin': 'round',
-    'stroke-linecap': 'round',
-  });
-
-  svg.appendChild(path);
-
-  points.forEach((point) => {
-    const x = scaleX(point.date.getTime());
-    const y = scaleY(point.totalXp);
-
-    const circle = createSvgElement('circle', {
-      cx: x,
-      cy: y,
-      r: 4,
-      fill: '#2563eb',
+    const bar = createSvgElement('rect', {
+      x: left,
+      y,
+      width: Math.max(barWidth, 4),
+      height: barHeight,
+      rx: 11,
+      class: 'chart-bar',
     });
 
     const title = createSvgElement('title');
-    title.textContent = `${point.path} | +${point.amount} XP | Total: ${point.totalXp} XP`;
-    circle.appendChild(title);
+    title.textContent = `${project.path || project.name}: ${project.xp.toLocaleString()} XP`;
+    bar.appendChild(title);
+    svg.appendChild(bar);
 
-    svg.appendChild(circle);
+    const value = createSvgElement('text', {
+      x: left + Math.min(barWidth + 12, usableWidth - 80),
+      y: y + barHeight / 2 + 5,
+      'font-size': '12',
+      fill: 'currentColor',
+    });
+    value.textContent = project.xp.toLocaleString();
+    svg.appendChild(value);
   });
-
-  const xLabel = createSvgElement('text', {
-    x: width / 2,
-    y: height - 8,
-    'text-anchor': 'middle',
-    'font-size': '12',
-    fill: '#666',
-  });
-  xLabel.textContent = 'Time';
-  svg.appendChild(xLabel);
-
-  const yLabel = createSvgElement('text', {
-    x: 16,
-    y: height / 2,
-    'text-anchor': 'middle',
-    'font-size': '12',
-    fill: '#666',
-    transform: `rotate(-90 16 ${height / 2})`,
-  });
-  yLabel.textContent = 'Total XP';
-  svg.appendChild(yLabel);
 }
 
-function renderPassFailGraph(data) {
-  const svg = document.getElementById('passfail-graph');
+function renderAuditRatioGraph(data) {
+  const svg = document.getElementById('audit-ratio-graph');
   if (!svg) return;
 
   clearSvg(svg);
 
-  const width = 420;
-  const height = 260;
-  const padding = 40;
+  const width = 520;
+  const height = 420;
+  const centerX = width / 2;
+  const centerY = 185;
+  const radius = 112;
+  const circumference = 2 * Math.PI * radius;
+  const total = data.up + data.down;
+  const upFraction = total === 0 ? 0 : data.up / total;
 
-  const pass = Number(data.pass) || 0;
-  const fail = Number(data.fail) || 0;
-  const maxValue = Math.max(pass, fail, 1);
-
-  svg.appendChild(
-    createSvgElement('line', {
-      x1: padding,
-      y1: height - padding,
-      x2: width - padding,
-      y2: height - padding,
-      stroke: '#999',
-      'stroke-width': '1',
-    })
-  );
-
-  svg.appendChild(
-    createSvgElement('line', {
-      x1: padding,
-      y1: padding,
-      x2: padding,
-      y2: height - padding,
-      stroke: '#999',
-      'stroke-width': '1',
-    })
-  );
-
-  const bars = [
-    { label: 'PASS', value: pass, color: '#16a34a', x: 100 },
-    { label: 'FAIL', value: fail, color: '#dc2626', x: 240 },
-  ];
-
-  const barWidth = 80;
-  const usableHeight = height - padding * 2;
-
-  bars.forEach((bar) => {
-    const barHeight = (bar.value / maxValue) * usableHeight;
-    const y = height - padding - barHeight;
-
-    const rect = createSvgElement('rect', {
-      x: bar.x,
-      y,
-      width: barWidth,
-      height: barHeight,
-      rx: 8,
-      fill: bar.color,
-    });
-
-    const rectTitle = createSvgElement('title');
-    rectTitle.textContent = `${bar.label}: ${bar.value}`;
-    rect.appendChild(rectTitle);
-
-    svg.appendChild(rect);
-
-    const valueText = createSvgElement('text', {
-      x: bar.x + barWidth / 2,
-      y: y - 8,
-      'text-anchor': 'middle',
-      'font-size': '14',
-      fill: '#222',
-    });
-    valueText.textContent = String(bar.value);
-    svg.appendChild(valueText);
-
-    const labelText = createSvgElement('text', {
-      x: bar.x + barWidth / 2,
-      y: height - padding + 20,
-      'text-anchor': 'middle',
-      'font-size': '13',
-      fill: '#444',
-    });
-    labelText.textContent = bar.label;
-    svg.appendChild(labelText);
-  });
-
-  for (let i = 0; i <= 4; i++) {
-    const value = (maxValue / 4) * i;
-    const y = height - padding - (value / maxValue) * usableHeight;
-
-    svg.appendChild(
-      createSvgElement('line', {
-        x1: padding,
-        y1: y,
-        x2: width - padding,
-        y2: y,
-        stroke: '#eee',
-        'stroke-width': '1',
-      })
-    );
-
-    const label = createSvgElement('text', {
-      x: padding - 8,
-      y: y + 4,
-      'text-anchor': 'end',
-      'font-size': '11',
-      fill: '#666',
-    });
-    label.textContent = Math.round(value);
-    svg.appendChild(label);
+  if (total === 0) {
+    addNoDataMessage(svg, width, height, 'No audit data available');
+    return;
   }
+
+  const background = createSvgElement('circle', {
+    cx: centerX,
+    cy: centerY,
+    r: radius,
+    fill: 'none',
+    class: 'donut-track',
+  });
+  svg.appendChild(background);
+
+  const progress = createSvgElement('circle', {
+    cx: centerX,
+    cy: centerY,
+    r: radius,
+    fill: 'none',
+    class: 'donut-progress',
+    'stroke-dasharray': `${circumference * upFraction} ${circumference}`,
+    transform: `rotate(-90 ${centerX} ${centerY})`,
+  });
+  svg.appendChild(progress);
+
+  const ratioText = createSvgElement('text', {
+    x: centerX,
+    y: centerY - 4,
+    'text-anchor': 'middle',
+    'font-size': '44',
+    'font-weight': '800',
+    fill: 'currentColor',
+  });
+  ratioText.textContent = data.ratio.toFixed(2);
+  svg.appendChild(ratioText);
+
+  const ratioLabel = createSvgElement('text', {
+    x: centerX,
+    y: centerY + 28,
+    'text-anchor': 'middle',
+    'font-size': '13',
+    fill: 'currentColor',
+  });
+  ratioLabel.textContent = 'audit ratio';
+  svg.appendChild(ratioLabel);
+
+  const upLabel = createSvgElement('text', {
+    x: centerX - 95,
+    y: 355,
+    'text-anchor': 'middle',
+    'font-size': '14',
+    fill: 'currentColor',
+  });
+  upLabel.textContent = `Done: ${data.up.toLocaleString()}`;
+  svg.appendChild(upLabel);
+
+  const downLabel = createSvgElement('text', {
+    x: centerX + 95,
+    y: 355,
+    'text-anchor': 'middle',
+    'font-size': '14',
+    fill: 'currentColor',
+  });
+  downLabel.textContent = `Received: ${data.down.toLocaleString()}`;
+  svg.appendChild(downLabel);
 }

@@ -73,58 +73,31 @@ async function getUserXp(userId) {
   return data.transaction || [];
 }
 
-async function getUserProgress(userId) {
+async function getUserAuditTransactions(userId) {
   const data = await gql(
     `
-    query GetUserProgress($userId: Int!) {
-      progress(
-        where: { userId: { _eq: $userId } }
+    query GetUserAuditTransactions($userId: Int!) {
+      transaction(
+        where: {
+          userId: { _eq: $userId }
+          type: { _in: ["up", "down"] }
+        }
         order_by: { createdAt: asc }
       ) {
         id
-        userId
+        amount
         objectId
-        grade
+        userId
         createdAt
-        updatedAt
         path
-      }
-    }
-    `,
-    { userId }
-  );
-
-  return data.progress || [];
-}
-
-async function getRecentResults(userId) {
-  const data = await gql(
-    `
-    query GetRecentResults($userId: Int!) {
-      result(
-        where: { userId: { _eq: $userId } }
-        order_by: { createdAt: desc }
-        limit: 10
-      ) {
-        id
-        objectId
-        userId
-        grade
         type
-        createdAt
-        updatedAt
-        path
-        user {
-          id
-          login
-        }
       }
     }
     `,
     { userId }
   );
 
-  return data.result || [];
+  return data.transaction || [];
 }
 
 async function getObjectById(objectId) {

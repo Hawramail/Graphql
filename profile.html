@@ -3,84 +3,71 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>GraphQL Profile | Dashboard</title>
+    <title>GraphQL Profile - Dashboard</title>
     <link rel="stylesheet" href="css/styles.css" />
   </head>
   <body class="page page-profile">
     <header class="topbar">
-      <div class="topbar-brand">
-        <div class="brand-mark small" aria-hidden="true">GQL</div>
-        <div>
-          <p class="eyebrow">Student dashboard</p>
-          <h1 class="topbar-title">Profile Overview</h1>
-          <p class="topbar-subtitle">Welcome, <span id="user-login">Loading...</span></p>
-        </div>
+      <div>
+        <p class="eyebrow">GraphQL Profile</p>
+        <h1 class="topbar-title">Dashboard</h1>
+        <p class="topbar-subtitle">Welcome back, <span id="user-login">Loading...</span></p>
       </div>
       <button id="logout-btn" class="btn btn-secondary">Logout</button>
     </header>
 
     <main class="dashboard">
-      <section class="hero-dashboard">
-        <div>
-          <p class="eyebrow">Live GraphQL metrics</p>
-          <h2>Your progress, cleaned up.</h2>
-          <p>XP, attempts, and recent outcomes are grouped into a simpler visual dashboard.</p>
-        </div>
-      </section>
-
-      <section class="stats-grid" aria-label="Profile statistics">
-        <article class="card stat-card accent-blue">
-          <span class="card-kicker">Account</span>
-          <h2 class="section-title">Basic Information</h2>
-          <div class="info-list">
-            <p><span class="info-label">User ID</span> <span id="user-id">-</span></p>
-            <p><span class="info-label">Login</span> <span id="user-login-card">-</span></p>
-          </div>
+      <section class="summary-grid" aria-label="Profile summary">
+        <article class="card hero-card">
+          <p class="eyebrow">Student</p>
+          <h2 id="user-login-card">-</h2>
+          <p>User ID <span id="user-id">-</span></p>
         </article>
 
-        <article class="card stat-card accent-purple">
-          <span class="card-kicker">Experience</span>
-          <h2 class="section-title">XP Summary</h2>
-          <div class="info-list">
-            <p><span class="info-label">Total XP</span> <span id="total-xp">0</span></p>
-            <p><span class="info-label">XP Transactions</span> <span id="xp-projects">0</span></p>
-          </div>
+        <article class="card metric-card">
+          <p class="metric-label">Total XP</p>
+          <strong id="total-xp">0</strong>
+          <span>earned from completed project XP</span>
         </article>
 
-        <article class="card stat-card accent-green">
-          <span class="card-kicker">Performance</span>
-          <h2 class="section-title">Progress Summary</h2>
-          <div class="info-list">
-            <p><span class="info-label">Pass</span> <span id="pass-count">0</span></p>
-            <p><span class="info-label">Fail</span> <span id="fail-count">0</span></p>
-            <p><span class="info-label">Total Attempts</span> <span id="total-attempts">0</span></p>
-          </div>
+        <article class="card metric-card">
+          <p class="metric-label">Audit Ratio</p>
+          <strong id="audit-ratio">0.00</strong>
+          <span><span id="audit-up">0</span> up / <span id="audit-down">0</span> down</span>
         </article>
       </section>
 
-      <section class="content-grid">
-        <article class="card graph-card wide-card">
+      <section class="graphs-section" aria-label="Dashboard charts">
+        <article class="card graph-card graph-card-wide">
           <div class="card-heading">
-            <span class="card-kicker">Timeline</span>
-            <h2 class="section-title">XP Over Time</h2>
+            <div>
+              <p class="eyebrow">Projects</p>
+              <h2 class="section-title">XP Added Per Project</h2>
+            </div>
           </div>
-          <svg id="xp-graph" viewBox="0 0 700 260" class="graph-svg" role="img" aria-label="XP over time graph"></svg>
+          <svg
+            id="xp-project-graph"
+            viewBox="0 0 900 420"
+            class="graph-svg"
+            role="img"
+            aria-label="XP added per project chart"
+          ></svg>
         </article>
 
         <article class="card graph-card">
           <div class="card-heading">
-            <span class="card-kicker">Ratio</span>
-            <h2 class="section-title">Pass vs Fail</h2>
+            <div>
+              <p class="eyebrow">Audits</p>
+              <h2 class="section-title">Audit Ratio</h2>
+            </div>
           </div>
-          <svg id="passfail-graph" viewBox="0 0 420 260" class="graph-svg" role="img" aria-label="Pass versus fail graph"></svg>
-        </article>
-
-        <article class="card results-card">
-          <div class="card-heading">
-            <span class="card-kicker">Activity</span>
-            <h2 class="section-title">Recent Results</h2>
-          </div>
-          <ul id="recent-results-list" class="results-list"></ul>
+          <svg
+            id="audit-ratio-graph"
+            viewBox="0 0 520 420"
+            class="graph-svg"
+            role="img"
+            aria-label="Audit ratio chart"
+          ></svg>
         </article>
       </section>
 

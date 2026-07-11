@@ -3,55 +3,37 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>GraphQL Profile | Sign In</title>
+    <title>GraphQL Profile - Login</title>
     <link rel="stylesheet" href="css/styles.css" />
   </head>
   <body class="page page-login">
-    <main class="auth-shell">
-      <section class="auth-panel" aria-label="Login introduction">
-        <p class="eyebrow">Reboot01 analytics</p>
-        <h1>Track your GraphQL journey in one clean dashboard.</h1>
-        <p class="hero-copy">
-          Sign in to view your XP growth, recent results, pass/fail balance, and profile details.
-        </p>
-        <div class="feature-row">
-          <span>XP timeline</span>
-          <span>Progress stats</span>
-          <span>Recent results</span>
-        </div>
-      </section>
-
+    <main class="login-wrapper">
       <section class="card login-card">
-        <div class="brand-mark" aria-hidden="true">GQL</div>
-        <h2 class="title">Welcome back</h2>
-        <p class="subtitle">Use your username or email to continue</p>
+        <h1 class="title">GraphQL Profile</h1>
+        <p class="subtitle">Sign in with your username or email</p>
 
         <form id="login-form" class="form" novalidate>
-          <div class="field-group">
-            <label for="identifier" class="label">Username or Email</label>
-            <input
-              id="identifier"
-              name="identifier"
-              type="text"
-              class="input"
-              placeholder="Enter username or email"
-              autocomplete="username"
-              required
-            />
-          </div>
+          <label for="identifier" class="label">Username or Email</label>
+          <input
+            id="identifier"
+            name="identifier"
+            type="text"
+            class="input"
+            placeholder="username or email"
+            autocomplete="username"
+            required
+          />
 
-          <div class="field-group">
-            <label for="password" class="label">Password</label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              class="input"
-              placeholder="Enter password"
-              autocomplete="current-password"
-              required
-            />
-          </div>
+          <label for="password" class="label">Password</label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            class="input"
+            placeholder="password"
+            autocomplete="current-password"
+            required
+          />
 
           <button type="submit" class="btn btn-primary">Login</button>
           <p id="login-error" class="error-message" aria-live="polite"></p>
