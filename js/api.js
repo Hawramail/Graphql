@@ -1,37 +1,58 @@
-async function gql(query, variables = {}) {
-  const jwt = localStorage.getItem("jwt");
+async function gql(
+  query,
+  variables = {}
+) {
+  const jwt =
+    localStorage.getItem("jwt");
 
   if (!jwt) {
-    window.location.replace("index.html");
+    window.location.replace(
+      "index.html"
+    );
     return;
   }
 
-  const response = await fetch(GRAPHQL_URL, {
-    method: "POST",
+  const response =
+    await fetch(
+      GRAPHQL_URL,
+      {
+        method: "POST",
 
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${jwt}`,
-    },
+        headers: {
+          "Content-Type":
+            "application/json",
 
-    body: JSON.stringify({
-      query,
-      variables,
-    }),
-  });
+          Authorization:
+            `Bearer ${jwt}`,
+        },
+
+        body: JSON.stringify({
+          query,
+          variables,
+        }),
+      }
+    );
 
   if (response.status === 401) {
     localStorage.removeItem("jwt");
-    window.location.replace("index.html");
+
+    window.location.replace(
+      "index.html"
+    );
+
     return;
   }
 
-  const result = await response.json();
+  const result =
+    await response.json();
 
   if (result.errors?.length) {
     throw new Error(
       result.errors
-        .map((error) => error.message)
+        .map(
+          (error) =>
+            error.message
+        )
         .join("\n")
     );
   }
@@ -50,21 +71,24 @@ const PROFILE_QUERY = `
       totalDown
 
       level: transactions(
-        where: {
-          type: { _eq: "level" }
-        }
+        limit: 1
         order_by: {
           createdAt: desc
         }
+        where: {
+          type: {
+            _eq: "level"
+          }
+        }
       ) {
         amount
-        path
-        createdAt
       }
 
       transactions(
         where: {
-          type: { _eq: "xp" }
+          type: {
+            _eq: "xp"
+          }
         }
         order_by: {
           createdAt: asc
@@ -79,7 +103,11 @@ const PROFILE_QUERY = `
 
     projects: progress(
       where: {
-        object: { type: { _eq: "project" } }
+        object: {
+          type: {
+            _eq: "project"
+          }
+        }
       }
       order_by: {
         updatedAt: desc

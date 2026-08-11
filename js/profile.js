@@ -1,129 +1,220 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const jwt = localStorage.getItem("jwt");
+document.addEventListener(
+  "DOMContentLoaded",
+  () => {
+    const jwt =
+      localStorage.getItem("jwt");
 
-  if (!jwt) {
-    window.location.replace("index.html");
-    return;
+    if (!jwt) {
+      window.location.replace(
+        "index.html"
+      );
+      return;
+    }
+
+    const logoutBtn =
+      document.getElementById(
+        "logout-btn"
+      );
+
+    logoutBtn.addEventListener(
+      "click",
+      () => {
+        localStorage.removeItem(
+          "jwt"
+        );
+
+        window.location.replace(
+          "index.html"
+        );
+      }
+    );
+
+    loadProfile();
   }
-
-  const logoutBtn = document.getElementById("logout-btn");
-
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", () => {
-      localStorage.removeItem("jwt");
-      window.location.replace("index.html");
-    });
-  }
-
-  loadProfile();
-});
+);
 
 
 async function loadProfile() {
   try {
-    const data = await fetchAllData();
+    const data =
+      await fetchAllData();
 
-    const user = data.user?.[0];
+    const user =
+      data.user?.[0];
 
     if (!user) {
-      throw new Error("No user data returned.");
+      throw new Error(
+        "No user data returned."
+      );
     }
 
 
     // ==========================================
-    // USER INFORMATION
+    // PROJECTS
     // ==========================================
 
-    setText("user-login", user.login);
-    setText("user-login-card", user.login);
-    setText("user-id", user.id);
+    const projects =
+      (data.projects || [])
+        .filter((project) => {
+          if (!project.path) {
+            return false;
+          }
+
+          const path =
+            project.path.toLowerCase();
+
+          return (
+            path.startsWith(
+              "/bahrain/bh-module"
+            ) &&
+            !path.includes(
+              "piscine"
+            ) &&
+            !path.includes(
+              "onboarding"
+            ) &&
+            !path.includes(
+              "exam"
+            )
+          );
+        });
 
 
     // ==========================================
     // LEVEL
-    //
-    // Prefer Bahrain bh-module level entries.
-    // If none exist, use the highest level found.
     // ==========================================
 
-    const allLevels = user.level || [];
+    const level =
+      user.level &&
+      user.level[0]
+        ? user.level[0].amount
+        : 0;
 
-    const moduleLevels = allLevels.filter((tx) => {
-      if (!tx.path) return false;
 
-      return tx.path
-        .toLowerCase()
-        .startsWith("/bahrain/bh-module");
-    });
+    // ==========================================
+    // XP TRANSACTIONS FOR GRAPH
+    // ==========================================
 
-    const levelsToUse =
-      moduleLevels.length > 0
-        ? moduleLevels
-        : allLevels;
+    const xpTransactions =
+      (user.transactions || [])
+        .filter((tx) => {
+          if (
+            !tx.type ||
+            tx.type.toLowerCase() !==
+              "xp"
+          ) {
+            return false;
+          }
 
-    const level = levelsToUse.reduce(
-      (highest, tx) =>
-        Math.max(
-          highest,
-          Number(tx.amount) || 0
-        ),
-      0
+          if (!tx.path) {
+            return false;
+          }
+
+          const path =
+            tx.path.toLowerCase();
+
+          return (
+            path.startsWith(
+              "/bahrain/bh-module"
+            ) &&
+            !path.includes(
+              "piscine"
+            ) &&
+            !path.includes(
+              "onboarding"
+            ) &&
+            !path.includes(
+              "exam"
+            )
+          );
+        });
+
+
+    xpTransactions.sort(
+      (a, b) =>
+        new Date(a.createdAt) -
+        new Date(b.createdAt)
     );
-
-    setText("user-level", level);
-
-
-    // ==========================================
-    // XP TRANSACTIONS
-    // ==========================================
-
-    const transactions =
-      user.transactions || [];
 
 
     // ==========================================
     // TOTAL XP
     //
-    // Same approach as the working version:
-    // only Bahrain bh-module XP,
-    // excluding individual piscine-js exercises.
+    // Same logic as your friend's version.
+    // Keep top-level piscine-js summary,
+    // exclude individual piscine-js exercises.
     // ==========================================
 
-    const totalXP = transactions
-      .filter((tx) => {
-        if (!tx.path) return false;
+    const totalXP =
+      (user.transactions || [])
 
-        const path =
-          tx.path.toLowerCase();
+        .filter((tx) => {
+          if (
+            !tx.type ||
+            tx.type.toLowerCase() !==
+              "xp"
+          ) {
+            return false;
+          }
 
-        if (
-          !path.startsWith(
-            "/bahrain/bh-module"
-          )
-        ) {
-          return false;
+          if (!tx.path) {
+            return false;
+          }
+
+          const path =
+            tx.path.toLowerCase();
+
+          if (
+            !path.startsWith(
+              "/bahrain/bh-module"
+            )
+          ) {
+            return false;
+          }
+
+          if (
+            path.startsWith(
+              "/bahrain/bh-module/piscine-js/"
+            )
+          ) {
+            return false;
+          }
+
+          return true;
+        })
+
+        .reduce(
+          (sum, tx) =>
+            sum +
+            (Number(tx.amount) || 0),
+          0
+        );
+
+
+    // ==========================================
+    // XP MAP FOR PROJECT GRAPH
+    // ==========================================
+
+    const xpMap = {};
+
+    xpTransactions.forEach(
+      (tx) => {
+        if (!tx.path) {
+          return;
         }
 
+        const amount =
+          Number(tx.amount) || 0;
+
         if (
-          path.startsWith(
-            "/bahrain/bh-module/piscine-js/"
-          )
+          !xpMap[tx.path] ||
+          amount >
+            xpMap[tx.path]
         ) {
-          return false;
+          xpMap[tx.path] =
+            amount;
         }
-
-        return true;
-      })
-      .reduce(
-        (sum, tx) =>
-          sum +
-          (Number(tx.amount) || 0),
-        0
-      );
-
-    setText(
-      "total-xp",
-      fmtXP(totalXP)
+      }
     );
 
 
@@ -139,8 +230,90 @@ async function loadProfile() {
 
     const ratio =
       auditDown > 0
-        ? (auditUp / auditDown).toFixed(1)
+        ? (
+            auditUp /
+            auditDown
+          ).toFixed(1)
         : "N/A";
+
+
+    // ==========================================
+    // PASS / FAIL
+    // ==========================================
+
+    const passedPaths = {};
+    const failedPaths = {};
+
+    projects.forEach(
+      (project) => {
+        if (!project.path) {
+          return;
+        }
+
+        if (
+          project.grade > 0
+        ) {
+          passedPaths[
+            project.path
+          ] = true;
+
+        } else if (
+          project.grade === 0
+        ) {
+          failedPaths[
+            project.path
+          ] = true;
+        }
+      }
+    );
+
+    const passCount =
+      Object.keys(
+        passedPaths
+      ).length;
+
+    const failCount =
+      Object.keys(
+        failedPaths
+      ).length;
+
+
+    // ==========================================
+    // DOM
+    // ==========================================
+
+    setText(
+      "header-login",
+      user.login
+    );
+
+    setText(
+      "user-login",
+      user.login
+    );
+
+    setText(
+      "user-id",
+      `ID: ${user.id}`
+    );
+
+    setText(
+      "avatar-char",
+      user.login
+        ? user.login[0]
+            .toUpperCase()
+        : "?"
+    );
+
+    setText(
+      "user-level",
+      level
+    );
+
+    setText(
+      "total-xp",
+      fmtXP(totalXP)
+    );
 
     setText(
       "audit-ratio",
@@ -157,61 +330,6 @@ async function loadProfile() {
       fmtXP(auditDown)
     );
 
-
-    // ==========================================
-    // PASS / FAIL
-    // ==========================================
-
-    const gradedProjects =
-      (data.projects || []).filter(
-        (project) => {
-          if (!project.path) {
-            return false;
-          }
-
-          const path =
-            project.path.toLowerCase();
-
-          return (
-            path.startsWith(
-              "/bahrain/bh-module"
-            ) &&
-            !path.includes("piscine") &&
-            !path.includes("onboarding") &&
-            !path.includes("exam")
-          );
-        }
-      );
-
-    const passedPaths = {};
-    const failedPaths = {};
-
-    gradedProjects.forEach(
-      (project) => {
-        if (!project.path) return;
-
-        if (project.grade > 0) {
-          passedPaths[project.path] =
-            true;
-        } else if (
-          project.grade === 0
-        ) {
-          failedPaths[project.path] =
-            true;
-        }
-      }
-    );
-
-    const passCount =
-      Object.keys(
-        passedPaths
-      ).length;
-
-    const failCount =
-      Object.keys(
-        failedPaths
-      ).length;
-
     setText(
       "projects-passed",
       passCount
@@ -224,36 +342,33 @@ async function loadProfile() {
 
 
     // ==========================================
-    // XP PER PROJECT GRAPH
+    // PROJECT GRAPH
     // ==========================================
 
-    const projectTransactions =
-      transactions.filter((tx) => {
-        if (!tx.path) {
-          return false;
-        }
+    const projectBars =
+      Object.keys(xpMap)
 
-        const path =
-          tx.path.toLowerCase();
-
-        return (
+        .filter((path) =>
           path.startsWith(
             "/bahrain/bh-module"
-          ) &&
-          !path.includes("piscine") &&
-          !path.includes("onboarding") &&
-          !path.includes("exam")
-        );
-      });
+          )
+        )
 
+        .map((path) => ({
+          name:
+            path
+              .split("/")
+              .pop(),
 
-    const projects =
-      buildProjectXP(
-        projectTransactions
-      );
+          xp:
+            xpMap[path],
+
+          path,
+        }));
+
 
     drawProjectXPGraph(
-      projects
+      projectBars
     );
 
     drawAuditGraph(
@@ -281,7 +396,10 @@ async function loadProfile() {
 // TEXT HELPER
 // ==========================================
 
-function setText(id, value) {
+function setText(
+  id,
+  value
+) {
   const element =
     document.getElementById(id);
 
@@ -302,14 +420,20 @@ function fmtXP(value) {
 
   if (xp >= 1000000) {
     return (
-      (xp / 1000000).toFixed(2) +
+      (
+        xp /
+        1000000
+      ).toFixed(2) +
       " MB"
     );
   }
 
   if (xp >= 1000) {
     return (
-      Math.round(xp / 1000) +
+      Math.round(
+        xp /
+        1000
+      ) +
       " kB"
     );
   }
@@ -319,59 +443,7 @@ function fmtXP(value) {
 
 
 // ==========================================
-// BUILD XP PER PROJECT
-// ==========================================
-
-function buildProjectXP(
-  transactions
-) {
-  const map = {};
-
-  transactions.forEach(
-    (tx) => {
-      if (!tx.path) return;
-
-      const amount =
-        Number(tx.amount) || 0;
-
-      if (
-        !map[tx.path] ||
-        amount > map[tx.path]
-      ) {
-        map[tx.path] =
-          amount;
-      }
-    }
-  );
-
-  return Object.entries(map)
-    .map(
-      ([path, xp]) => ({
-        path,
-
-        name:
-          path
-            .split("/")
-            .filter(Boolean)
-            .pop(),
-
-        xp,
-      })
-    )
-    .filter(
-      (project) =>
-        project.xp > 0
-    )
-    .sort(
-      (a, b) =>
-        b.xp - a.xp
-    )
-    .slice(0, 10);
-}
-
-
-// ==========================================
-// XP PER PROJECT GRAPH
+// PROJECT GRAPH
 // ==========================================
 
 function drawProjectXPGraph(
@@ -382,12 +454,34 @@ function drawProjectXPGraph(
       "xp-project-graph"
     );
 
-  if (!svg) return;
+  if (!svg) {
+    return;
+  }
 
   svg.innerHTML = "";
 
 
-  if (!projects.length) {
+  const sorted =
+    projects
+
+      .filter(
+        (project) =>
+          project.xp > 0
+      )
+
+      .sort(
+        (a, b) =>
+          b.xp -
+          a.xp
+      )
+
+      .slice(
+        0,
+        10
+      );
+
+
+  if (!sorted.length) {
     svg.innerHTML = `
       <text
         x="450"
@@ -418,15 +512,10 @@ function drawProjectXPGraph(
 
 
   const maxXP =
-    Math.max(
-      ...projects.map(
-        (project) =>
-          project.xp
-      )
-    );
+    sorted[0].xp;
 
 
-  projects.forEach(
+  sorted.forEach(
     (project, index) => {
 
       const y =
@@ -527,7 +616,6 @@ function drawProjectXPGraph(
           "title"
         );
 
-
       title.textContent =
         `${project.name}: ${fmtXP(
           project.xp
@@ -571,7 +659,9 @@ function drawAuditGraph(
       "audit-ratio-graph"
     );
 
-  if (!svg) return;
+  if (!svg) {
+    return;
+  }
 
   svg.innerHTML = "";
 
@@ -581,9 +671,11 @@ function drawAuditGraph(
   const centerX =
     width / 2;
 
-  const centerY = 180;
+  const centerY =
+    180;
 
-  const radius = 95;
+  const radius =
+    95;
 
   const circumference =
     2 *
@@ -694,6 +786,7 @@ function drawAuditGraph(
       "text",
       {
         x: centerX,
+
         y: 345,
 
         "text-anchor":
@@ -749,7 +842,6 @@ function createSVG(
       tag
     );
 
-
   Object.entries(
     attributes
   ).forEach(
@@ -760,7 +852,6 @@ function createSVG(
       );
     }
   );
-
 
   return element;
 }

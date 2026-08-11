@@ -1,228 +1,233 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8" />
 
   <meta
     name="viewport"
-    content="width=device-width, initial-scale=1"
-  >
+    content="width=device-width, initial-scale=1.0"
+  />
 
   <title>GraphQL Profile - Dashboard</title>
 
   <link
     rel="stylesheet"
-    href="css/styles.css"
-  >
+    href="css/profile.css"
+  />
 </head>
 
 
-<body class="page page-profile">
+<body>
 
   <!-- ==========================================
-       TOP HEADER
+       HEADER
   =========================================== -->
 
   <header class="topbar">
 
-    <div>
+    <div class="brand-area">
+
       <p class="eyebrow">
         GraphQL Profile
       </p>
 
-      <h1 class="topbar-title">
+      <h1>
         Student Dashboard
       </h1>
 
-      <p class="topbar-subtitle">
-        Signed in as
-        <span id="user-login">
-          Loading...
-        </span>
-      </p>
     </div>
 
 
-    <button
-      id="logout-btn"
-      class="btn btn-secondary"
-      type="button"
-    >
-      Logout
-    </button>
+    <div class="header-actions">
+
+      <span id="header-login">
+        Loading...
+      </span>
+
+      <button
+        id="logout-btn"
+        type="button"
+        class="logout-button"
+      >
+        Logout
+      </button>
+
+    </div>
 
   </header>
 
 
-
   <!-- ==========================================
-       DASHBOARD
+       MAIN
   =========================================== -->
 
   <main class="dashboard">
 
 
     <!-- ========================================
+         PROFILE HERO
+    ========================================= -->
+
+    <section class="hero-card">
+
+      <div class="profile-info">
+
+        <div
+          id="avatar-char"
+          class="avatar"
+        >
+          ?
+        </div>
+
+
+        <div>
+
+          <p class="eyebrow">
+            Student
+          </p>
+
+          <h2 id="user-login">
+            Loading...
+          </h2>
+
+          <p
+            id="user-id"
+            class="muted"
+          >
+            -
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="hero-stats">
+
+        <div class="stat">
+
+          <span class="stat-label">
+            Total XP
+          </span>
+
+          <strong id="total-xp">
+            0 B
+          </strong>
+
+        </div>
+
+
+        <div class="stat">
+
+          <span class="stat-label">
+            Audit Ratio
+          </span>
+
+          <strong id="audit-ratio">
+            0.0
+          </strong>
+
+        </div>
+
+
+        <div class="stat">
+
+          <span class="stat-label">
+            Current Level
+          </span>
+
+          <strong id="user-level">
+            0
+          </strong>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ========================================
          SUMMARY CARDS
     ========================================= -->
 
-    <section
-      class="summary-grid"
-      aria-label="Profile summary"
-    >
+    <section class="summary-grid">
 
 
-      <!-- Student -->
+      <article class="card">
 
-      <article class="panel identity-card">
-
-        <p class="eyebrow">
-          Student
+        <p class="card-label">
+          XP Given
         </p>
 
-        <h2 id="user-login-card">
-          -
-        </h2>
-
-        <p class="muted">
-          User ID
-          <span id="user-id">
-            -
-          </span>
-        </p>
-
-      </article>
-
-
-
-      <!-- Total XP -->
-
-      <article class="panel metric-card">
-
-        <p class="metric-label">
-          Total XP
-        </p>
-
-        <strong id="total-xp">
+        <strong id="audit-up">
           0 B
         </strong>
 
-        <p class="muted">
-          Total XP earned
-        </p>
-
       </article>
 
 
+      <article class="card">
 
-      <!-- Audit Ratio -->
-
-      <article class="panel metric-card">
-
-        <p class="metric-label">
-          Audit Ratio
+        <p class="card-label">
+          XP Received
         </p>
 
-        <strong id="audit-ratio">
-          0.00
+        <strong id="audit-down">
+          0 B
         </strong>
 
-        <p class="muted">
-
-          <span id="audit-up">
-            0 B
-          </span>
-
-          done /
-
-          <span id="audit-down">
-            0 B
-          </span>
-
-          received
-
-        </p>
-
-      </article>
-
-    </section>
-
-
-
-    <!-- ========================================
-         OUTCOMES
-    ========================================= -->
-
-    <section
-      class="summary-grid"
-      aria-label="Profile outcomes"
-    >
-
-      <!-- Level -->
-
-      <article class="panel metric-card">
-
-        <p class="metric-label">
-          Current Level
-        </p>
-
-        <strong id="user-level">
-          0
-        </strong>
       </article>
 
 
-      <!-- Projects Passed -->
+      <article class="card">
 
-      <article class="panel metric-card">
-
-        <p class="metric-label">
+        <p class="card-label">
           Projects Passed
         </p>
 
-        <strong id="projects-passed" class="accent">
+        <strong
+          id="projects-passed"
+          class="success"
+        >
           0
         </strong>
 
       </article>
 
 
-      <!-- Projects Failed -->
+      <article class="card">
 
-      <article class="panel metric-card">
-
-        <p class="metric-label">
+        <p class="card-label">
           Projects Failed
         </p>
 
-        <strong id="projects-failed" class="danger">
+        <strong
+          id="projects-failed"
+          class="danger"
+        >
           0
         </strong>
 
       </article>
+
 
     </section>
 
 
-
     <!-- ========================================
-         CHARTS
+         GRAPHS
     ========================================= -->
 
-    <section
-      class="charts-grid"
-      aria-label="Dashboard charts"
-    >
+    <section class="graphs-grid">
 
 
-      <!-- XP Per Project -->
+      <!-- XP PROJECT GRAPH -->
 
-      <article
-        class="panel chart-card chart-card-wide"
-      >
+      <article class="graph-card graph-wide">
 
-        <div class="section-heading">
+        <div class="graph-heading">
 
           <div>
 
@@ -230,7 +235,7 @@
               Projects
             </p>
 
-            <h2 class="section-title">
+            <h2>
               XP Added Per Project
             </h2>
 
@@ -250,12 +255,11 @@
       </article>
 
 
+      <!-- AUDIT GRAPH -->
 
-      <!-- Audit Ratio -->
+      <article class="graph-card">
 
-      <article class="panel chart-card">
-
-        <div class="section-heading">
+        <div class="graph-heading">
 
           <div>
 
@@ -263,7 +267,7 @@
               Audits
             </p>
 
-            <h2 class="section-title">
+            <h2>
               Audit Ratio
             </h2>
 
@@ -282,35 +286,26 @@
 
       </article>
 
+
     </section>
 
 
-
     <!-- ========================================
-         ERROR MESSAGE
+         ERROR
     ========================================= -->
 
     <p
       id="global-error"
-      class="error-message page-error"
+      class="error-message"
       aria-live="polite"
     ></p>
+
 
   </main>
 
 
-
   <!-- ==========================================
        JAVASCRIPT
-
-       Order matters:
-
-       1. config.js gives us the API URLs
-       2. api.js gives us fetchAllData()
-       3. profile.js loads/processes/renders data
-
-       graphs.js is no longer needed because the
-       graph code will live inside profile.js.
   =========================================== -->
 
   <script src="js/config.js"></script>
