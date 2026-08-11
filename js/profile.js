@@ -1,22 +1,20 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const jwt = localStorage.getItem('jwt');
+document.addEventListener("DOMContentLoaded", () => {
+  const jwt = localStorage.getItem("jwt");
 
   if (!jwt) {
-    window.location.replace('index.html');
+    window.location.replace("index.html");
     return;
   }
 
-  const logoutBtn =
-    document.getElementById('logout-btn');
+  const logoutBtn = document.getElementById("logout-btn");
 
-  logoutBtn.addEventListener('click', () => {
-    localStorage.removeItem('jwt');
-    window.location.replace('index.html');
+  logoutBtn.addEventListener("click", () => {
+    localStorage.removeItem("jwt");
+    window.location.replace("index.html");
   });
 
   loadProfile();
 });
-
 
 async function loadProfile() {
   try {
@@ -25,9 +23,8 @@ async function loadProfile() {
     const user = data.user?.[0];
 
     if (!user) {
-      throw new Error('No user data returned.');
+      throw new Error("No user data returned.");
     }
-
 
     /*
       ==========================================
@@ -35,10 +32,9 @@ async function loadProfile() {
       ==========================================
     */
 
-    setText('user-login', user.login);
-    setText('user-login-card', user.login);
-    setText('user-id', user.id);
-
+    setText("user-login", user.login);
+    setText("user-login-card", user.login);
+    setText("user-id", user.id);
 
     /*
       ==========================================
@@ -46,13 +42,9 @@ async function loadProfile() {
       ==========================================
     */
 
-    const level =
-      user.level && user.level[0]
-        ? user.level[0].amount
-        : 0;
+    const level = user.level && user.level[0] ? user.level[0].amount : 0;
 
-    setText('user-level', level);
-
+    setText("user-level", level);
 
     /*
       ==========================================
@@ -60,9 +52,56 @@ async function loadProfile() {
       ==========================================
     */
 
-    const transactions =
-      user.transactions || [];
+    const transactions = user.transactions || [];
 
+    console.log("===== DEBUG START =====");
+
+    console.log("USER LEVEL RESULT:", user.level);
+
+    console.log(
+      "ALL XP TRANSACTIONS:",
+      transactions.map((tx) => ({
+        amount: tx.amount,
+        type: tx.type,
+        path: tx.path,
+        createdAt: tx.createdAt,
+      })),
+    );
+
+    const countedXPTransactions = transactions.filter((tx) => {
+      if (!tx.path) return false;
+
+      const path = tx.path.toLowerCase();
+
+      if (!path.startsWith("/bahrain/bh-module")) {
+        return false;
+      }
+
+      if (path.startsWith("/bahrain/bh-module/piscine-js/")) {
+        return false;
+      }
+
+      return true;
+    });
+
+    console.log(
+      "COUNTED XP TRANSACTIONS:",
+      countedXPTransactions.map((tx) => ({
+        amount: tx.amount,
+        path: tx.path,
+        createdAt: tx.createdAt,
+      })),
+    );
+
+    const debugTotalXP = countedXPTransactions.reduce(
+      (sum, tx) => sum + (Number(tx.amount) || 0),
+      0,
+    );
+
+    console.log("FINAL RAW XP:", debugTotalXP);
+    console.log("FINAL FORMATTED XP:", fmtXP(debugTotalXP));
+
+    console.log("===== DEBUG END =====");
 
     /*
       ==========================================
@@ -77,25 +116,16 @@ async function loadProfile() {
 
     const totalXP = transactions
 
-      .filter(tx => {
+      .filter((tx) => {
         if (!tx.path) return false;
 
-        const path =
-          tx.path.toLowerCase();
+        const path = tx.path.toLowerCase();
 
-        if (
-          !path.startsWith(
-            '/bahrain/bh-module'
-          )
-        ) {
+        if (!path.startsWith("/bahrain/bh-module")) {
           return false;
         }
 
-        if (
-          path.startsWith(
-            '/bahrain/bh-module/piscine-js/'
-          )
-        ) {
+        if (path.startsWith("/bahrain/bh-module/piscine-js/")) {
           return false;
         }
 
@@ -103,18 +133,12 @@ async function loadProfile() {
       })
 
       .reduce(
-        (sum, tx) =>
-          sum + (Number(tx.amount) || 0),
+        (sum, tx) => sum + (Number(tx.amount) || 0),
 
-        0
+        0,
       );
 
-
-    setText(
-      'total-xp',
-      fmtXP(totalXP)
-    );
-
+    setText("total-xp", fmtXP(totalXP));
 
     /*
       ==========================================
@@ -122,34 +146,17 @@ async function loadProfile() {
       ==========================================
     */
 
-    const auditUp =
-      Number(user.totalUp) || 0;
+    const auditUp = Number(user.totalUp) || 0;
 
-    const auditDown =
-      Number(user.totalDown) || 0;
+    const auditDown = Number(user.totalDown) || 0;
 
+    const ratio = auditDown > 0 ? (auditUp / auditDown).toFixed(1) : "N/A";
 
-    const ratio =
-      auditDown > 0
-        ? (auditUp / auditDown).toFixed(1)
-        : 'N/A';
+    setText("audit-ratio", ratio);
 
+    setText("audit-up", fmtXP(auditUp));
 
-    setText(
-      'audit-ratio',
-      ratio
-    );
-
-    setText(
-      'audit-up',
-      fmtXP(auditUp)
-    );
-
-    setText(
-      'audit-down',
-      fmtXP(auditDown)
-    );
-
+    setText("audit-down", fmtXP(auditDown));
 
     /*
       ==========================================
@@ -163,25 +170,23 @@ async function loadProfile() {
       ==========================================
     */
 
-    const gradedProjects = (data.projects || [])
-      .filter(project => {
-        if (!project.path) return false;
+    const gradedProjects = (data.projects || []).filter((project) => {
+      if (!project.path) return false;
 
-        const path =
-          project.path.toLowerCase();
+      const path = project.path.toLowerCase();
 
-        return (
-          path.startsWith('/bahrain/bh-module') &&
-          !path.includes('piscine') &&
-          !path.includes('onboarding') &&
-          !path.includes('exam')
-        );
-      });
+      return (
+        path.startsWith("/bahrain/bh-module") &&
+        !path.includes("piscine") &&
+        !path.includes("onboarding") &&
+        !path.includes("exam")
+      );
+    });
 
     const passedPaths = {};
     const failedPaths = {};
 
-    gradedProjects.forEach(project => {
+    gradedProjects.forEach((project) => {
       if (!project.path) return;
 
       if (project.grade > 0) {
@@ -194,9 +199,8 @@ async function loadProfile() {
     const passCount = Object.keys(passedPaths).length;
     const failCount = Object.keys(failedPaths).length;
 
-    setText('projects-passed', passCount);
-    setText('projects-failed', failCount);
-
+    setText("projects-passed", passCount);
+    setText("projects-failed", failCount);
 
     /*
       ==========================================
@@ -211,56 +215,30 @@ async function loadProfile() {
       ==========================================
     */
 
-    const projectTransactions =
-      transactions.filter(tx => {
-        if (!tx.path) return false;
+    const projectTransactions = transactions.filter((tx) => {
+      if (!tx.path) return false;
 
-        const path =
-          tx.path.toLowerCase();
+      const path = tx.path.toLowerCase();
 
-        return (
-          path.startsWith(
-            '/bahrain/bh-module'
-          ) &&
-          !path.includes('piscine') &&
-          !path.includes('onboarding') &&
-          !path.includes('exam')
-        );
-      });
-
-
-    const projects =
-      buildProjectXP(
-        projectTransactions
+      return (
+        path.startsWith("/bahrain/bh-module") &&
+        !path.includes("piscine") &&
+        !path.includes("onboarding") &&
+        !path.includes("exam")
       );
+    });
 
+    const projects = buildProjectXP(projectTransactions);
 
-    drawProjectXPGraph(
-      projects
-    );
+    drawProjectXPGraph(projects);
 
-
-    drawAuditGraph(
-      auditUp,
-      auditDown
-    );
-
-
+    drawAuditGraph(auditUp, auditDown);
   } catch (error) {
-    console.error(
-      'Profile loading error:',
-      error
-    );
+    console.error("Profile loading error:", error);
 
-    setText(
-      'global-error',
-      error.message ||
-        'Failed to load profile.'
-    );
+    setText("global-error", error.message || "Failed to load profile.");
   }
 }
-
-
 
 /*
   ==========================================
@@ -269,16 +247,12 @@ async function loadProfile() {
 */
 
 function setText(id, value) {
-  const element =
-    document.getElementById(id);
+  const element = document.getElementById(id);
 
   if (element) {
-    element.textContent =
-      value ?? '-';
+    element.textContent = value ?? "-";
   }
 }
-
-
 
 /*
   ==========================================
@@ -295,27 +269,18 @@ function setText(id, value) {
 */
 
 function fmtXP(value) {
-  const xp =
-    Number(value) || 0;
+  const xp = Number(value) || 0;
 
   if (xp >= 1000000) {
-    return (
-      (xp / 1000000).toFixed(2)
-      + ' MB'
-    );
+    return (xp / 1000000).toFixed(2) + " MB";
   }
 
   if (xp >= 1000) {
-    return (
-      Math.round(xp / 1000)
-      + ' kB'
-    );
+    return Math.round(xp / 1000) + " kB";
   }
 
-  return xp + ' B';
+  return xp + " B";
 }
-
-
 
 /*
   ==========================================
@@ -333,49 +298,32 @@ function fmtXP(value) {
 function buildProjectXP(transactions) {
   const map = {};
 
-  transactions.forEach(tx => {
+  transactions.forEach((tx) => {
     if (!tx.path) return;
 
-    const amount =
-      Number(tx.amount) || 0;
+    const amount = Number(tx.amount) || 0;
 
-
-    if (
-      !map[tx.path] ||
-      amount > map[tx.path]
-    ) {
+    if (!map[tx.path] || amount > map[tx.path]) {
       map[tx.path] = amount;
     }
   });
-
 
   return Object.entries(map)
 
     .map(([path, xp]) => ({
       path,
 
-      name:
-        path
-          .split('/')
-          .filter(Boolean)
-          .pop(),
+      name: path.split("/").filter(Boolean).pop(),
 
-      xp
+      xp,
     }))
 
-    .filter(project =>
-      project.xp > 0
-    )
+    .filter((project) => project.xp > 0)
 
-    .sort(
-      (a, b) =>
-        b.xp - a.xp
-    )
+    .sort((a, b) => b.xp - a.xp)
 
     .slice(0, 10);
 }
-
-
 
 /*
   ==========================================
@@ -384,15 +332,11 @@ function buildProjectXP(transactions) {
 */
 
 function drawProjectXPGraph(projects) {
-  const svg =
-    document.getElementById(
-      'xp-project-graph'
-    );
+  const svg = document.getElementById("xp-project-graph");
 
   if (!svg) return;
 
-  svg.innerHTML = '';
-
+  svg.innerHTML = "";
 
   if (!projects.length) {
     svg.innerHTML = `
@@ -409,7 +353,6 @@ function drawProjectXPGraph(projects) {
     return;
   }
 
-
   const width = 900;
 
   const left = 170;
@@ -418,167 +361,90 @@ function drawProjectXPGraph(projects) {
 
   const rowHeight = 36;
 
-  const graphWidth =
-    width - left - right;
+  const graphWidth = width - left - right;
 
+  const maxXP = Math.max(...projects.map((project) => project.xp));
 
-  const maxXP =
-    Math.max(
-      ...projects.map(
-        project => project.xp
-      )
-    );
+  projects.forEach((project, index) => {
+    const y = top + index * rowHeight;
 
+    const barWidth = (project.xp / maxXP) * graphWidth;
 
-  projects.forEach(
-    (project, index) => {
-
-      const y =
-        top +
-        index * rowHeight;
-
-
-      const barWidth =
-        (
-          project.xp /
-          maxXP
-        )
-        *
-        graphWidth;
-
-
-      /*
+    /*
         Background track
       */
 
-      const track =
-        createSVG(
-          'rect',
-          {
-            x: left,
-            y,
-            width: graphWidth,
-            height: 20,
-            rx: 7,
-            class:
-              'chart-track'
-          }
-        );
+    const track = createSVG("rect", {
+      x: left,
+      y,
+      width: graphWidth,
+      height: 20,
+      rx: 7,
+      class: "chart-track",
+    });
 
-
-      /*
+    /*
         Actual XP bar
       */
 
-      const bar =
-        createSVG(
-          'rect',
-          {
-            x: left,
-            y,
-            width: barWidth,
-            height: 20,
-            rx: 7,
-            class:
-              'chart-bar'
-          }
-        );
+    const bar = createSVG("rect", {
+      x: left,
+      y,
+      width: barWidth,
+      height: 20,
+      rx: 7,
+      class: "chart-bar",
+    });
 
-
-      /*
+    /*
         Project name
       */
 
-      const label =
-        createSVG(
-          'text',
-          {
-            x:
-              left - 12,
+    const label = createSVG("text", {
+      x: left - 12,
 
-            y:
-              y + 15,
+      y: y + 15,
 
-            'text-anchor':
-              'end',
+      "text-anchor": "end",
 
-            class:
-              'chart-label'
-          }
-        );
+      class: "chart-label",
+    });
 
+    label.textContent = project.name;
 
-      label.textContent =
-        project.name;
-
-
-      /*
+    /*
         XP value
       */
 
-      const value =
-        createSVG(
-          'text',
-          {
-            x:
-              left +
-              barWidth +
-              10,
+    const value = createSVG("text", {
+      x: left + barWidth + 10,
 
-            y:
-              y + 15,
+      y: y + 15,
 
-            class:
-              'chart-value'
-          }
-        );
+      class: "chart-value",
+    });
 
+    value.textContent = fmtXP(project.xp);
 
-      value.textContent =
-        fmtXP(
-          project.xp
-        );
-
-
-      /*
+    /*
         Tooltip
       */
 
-      const title =
-        createSVG(
-          'title'
-        );
+    const title = createSVG("title");
 
+    title.textContent = `${project.name}: ${fmtXP(project.xp)}`;
 
-      title.textContent =
-        `${project.name}: ${fmtXP(project.xp)}`;
+    bar.appendChild(title);
 
+    svg.appendChild(track);
 
-      bar.appendChild(
-        title
-      );
+    svg.appendChild(bar);
 
+    svg.appendChild(label);
 
-      svg.appendChild(
-        track
-      );
-
-      svg.appendChild(
-        bar
-      );
-
-      svg.appendChild(
-        label
-      );
-
-      svg.appendChild(
-        value
-      );
-    }
-  );
+    svg.appendChild(value);
+  });
 }
-
-
 
 /*
   ==========================================
@@ -586,204 +452,119 @@ function drawProjectXPGraph(projects) {
   ==========================================
 */
 
-function drawAuditGraph(
-  auditUp,
-  auditDown
-) {
-
-  const svg =
-    document.getElementById(
-      'audit-ratio-graph'
-    );
+function drawAuditGraph(auditUp, auditDown) {
+  const svg = document.getElementById("audit-ratio-graph");
 
   if (!svg) return;
 
-
-  svg.innerHTML = '';
-
+  svg.innerHTML = "";
 
   const width = 520;
   const height = 420;
 
+  const centerX = width / 2;
 
-  const centerX =
-    width / 2;
-
-  const centerY =
-    180;
-
+  const centerY = 180;
 
   const radius = 95;
 
-  const circumference =
-    2 * Math.PI * radius;
+  const circumference = 2 * Math.PI * radius;
 
-
-  const ratio =
-    auditDown > 0
-      ? auditUp / auditDown
-      : 0;
-
+  const ratio = auditDown > 0 ? auditUp / auditDown : 0;
 
   /*
     Cap visual progress at 100%.
     Ratio number can still be above 1.
   */
 
-  const progress =
-    Math.min(
-      ratio,
-      1
-    );
-
+  const progress = Math.min(ratio, 1);
 
   /*
     Track
   */
 
-  const track =
-    createSVG(
-      'circle',
-      {
-        cx: centerX,
-        cy: centerY,
-        r: radius,
-        class:
-          'donut-track'
-      }
-    );
-
+  const track = createSVG("circle", {
+    cx: centerX,
+    cy: centerY,
+    r: radius,
+    class: "donut-track",
+  });
 
   /*
     Progress circle
   */
 
-  const ring =
-    createSVG(
-      'circle',
-      {
-        cx: centerX,
-        cy: centerY,
-        r: radius,
+  const ring = createSVG("circle", {
+    cx: centerX,
+    cy: centerY,
+    r: radius,
 
-        class:
-          'donut-progress',
+    class: "donut-progress",
 
-        'stroke-dasharray':
-          circumference,
+    "stroke-dasharray": circumference,
 
-        'stroke-dashoffset':
-          circumference *
-          (1 - progress),
+    "stroke-dashoffset": circumference * (1 - progress),
 
-        transform:
-          `rotate(-90 ${centerX} ${centerY})`
-      }
-    );
-
+    transform: `rotate(-90 ${centerX} ${centerY})`,
+  });
 
   /*
     Ratio number
   */
 
-  const number =
-    createSVG(
-      'text',
-      {
-        x: centerX,
-        y:
-          centerY + 12,
+  const number = createSVG("text", {
+    x: centerX,
+    y: centerY + 12,
 
-        'text-anchor':
-          'middle',
+    "text-anchor": "middle",
 
-        class:
-          'donut-number'
-      }
-    );
+    class: "donut-number",
+  });
 
-
-  number.textContent =
-    auditDown > 0
-      ? ratio.toFixed(1)
-      : 'N/A';
-
+  number.textContent = auditDown > 0 ? ratio.toFixed(1) : "N/A";
 
   /*
     Label
   */
 
-  const label =
-    createSVG(
-      'text',
-      {
-        x:
-          centerX,
+  const label = createSVG("text", {
+    x: centerX,
 
-        y:
-          centerY + 45,
+    y: centerY + 45,
 
-        'text-anchor':
-          'middle',
+    "text-anchor": "middle",
 
-        class:
-          'donut-label'
-      }
-    );
+    class: "donut-label",
+  });
 
-
-  label.textContent =
-    'AUDIT RATIO';
-
+  label.textContent = "AUDIT RATIO";
 
   /*
     Given / received values
   */
 
-  const details =
-    createSVG(
-      'text',
-      {
-        x:
-          centerX,
+  const details = createSVG("text", {
+    x: centerX,
 
-        y: 345,
+    y: 345,
 
-        'text-anchor':
-          'middle',
+    "text-anchor": "middle",
 
-        class:
-          'chart-label'
-      }
-    );
+    class: "chart-label",
+  });
 
+  details.textContent = `${fmtXP(auditUp)} given · ${fmtXP(auditDown)} received`;
 
-  details.textContent =
-    `${fmtXP(auditUp)} given · ${fmtXP(auditDown)} received`;
+  svg.appendChild(track);
 
+  svg.appendChild(ring);
 
-  svg.appendChild(
-    track
-  );
+  svg.appendChild(number);
 
-  svg.appendChild(
-    ring
-  );
+  svg.appendChild(label);
 
-  svg.appendChild(
-    number
-  );
-
-  svg.appendChild(
-    label
-  );
-
-  svg.appendChild(
-    details
-  );
+  svg.appendChild(details);
 }
-
-
 
 /*
   ==========================================
@@ -791,30 +572,12 @@ function drawAuditGraph(
   ==========================================
 */
 
-function createSVG(
-  tag,
-  attributes = {}
-) {
+function createSVG(tag, attributes = {}) {
+  const element = document.createElementNS("http://www.w3.org/2000/svg", tag);
 
-  const element =
-    document.createElementNS(
-      'http://www.w3.org/2000/svg',
-      tag
-    );
-
-
-  Object.entries(
-    attributes
-  ).forEach(
-    ([key, value]) => {
-
-      element.setAttribute(
-        key,
-        value
-      );
-    }
-  );
-
+  Object.entries(attributes).forEach(([key, value]) => {
+    element.setAttribute(key, value);
+  });
 
   return element;
 }

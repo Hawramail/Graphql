@@ -51,7 +51,7 @@ const PROFILE_QUERY = `
 
       level: transactions(
         limit: 1
-        order_by: { createdAt: desc }
+        order_by: { amount: desc }
         where: { type: { _eq: "level" } }
       ) {
         amount
