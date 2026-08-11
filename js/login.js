@@ -1,8 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const existingToken = localStorage.getItem('jwt');
-
-  if (existingToken) {
-    window.location.href = 'profile.html';
+  if (localStorage.getItem('jwt')) {
+    window.location.replace('profile.html');
     return;
   }
 
@@ -13,61 +11,51 @@ document.addEventListener('DOMContentLoaded', () => {
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
+
     errorEl.textContent = '';
 
     const identifier = identifierInput.value.trim();
     const password = passwordInput.value;
 
     if (!identifier || !password) {
-      errorEl.textContent = 'Please enter both username/email and password.';
+      errorEl.textContent = 'Please enter username/email and password.';
       return;
     }
 
     try {
-      const basicToken = btoa(`${identifier}:${password}`);
+      const credentials = btoa(`${identifier}:${password}`);
 
       const response = await fetch(SIGNIN_URL, {
         method: 'POST',
         headers: {
-          Authorization: `Basic ${basicToken}`,
-        },
+          Authorization: `Basic ${credentials}`
+        }
       });
 
-      const rawText = (await response.text()).trim();
-      console.log('signin raw response:', rawText);
+      const data = await response.json();
 
       if (!response.ok) {
-        errorEl.textContent = 'Invalid credentials. Please try again.';
-        return;
+        throw new Error('Invalid credentials.');
       }
 
-      let jwt = rawText;
+      const jwt =
+        typeof data === 'string'
+          ? data
+          : data.token || data.jwt || data.access_token;
 
-      // If server returned JSON, try to extract token
-      if (rawText.startsWith('{') || rawText.startsWith('[')) {
-        try {
-          const parsed = JSON.parse(rawText);
-          jwt = parsed.token || parsed.jwt || parsed.access_token || '';
-        } catch (e) {
-          // keep rawText as fallback
-        }
-      }
-
-      // remove accidental surrounding quotes
-      jwt = jwt.replace(/^"+|"+$/g, '').trim();
-
-      // basic JWT sanity check
-      if (!jwt || jwt.split('.').length !== 3) {
-        console.error('Stored token is not a valid JWT format:', jwt);
-        errorEl.textContent = 'Login failed: server did not return a valid JWT.';
-        return;
+      if (!jwt) {
+        throw new Error('No token received.');
       }
 
       localStorage.setItem('jwt', jwt);
-      window.location.href = 'profile.html';
+
+      window.location.replace('profile.html');
+
     } catch (error) {
       console.error('Login error:', error);
-      errorEl.textContent = 'Could not reach the login server.';
+
+      errorEl.textContent =
+        error.message || 'Login failed.';
     }
   });
 });

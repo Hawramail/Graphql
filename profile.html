@@ -1,70 +1,266 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>GraphQL Profile - Dashboard</title>
-    <link rel="stylesheet" href="css/styles.css" />
-  </head>
-  <body class="page page-profile">
-    <header class="topbar">
-      <div>
-        <p class="eyebrow">GraphQL Profile</p>
-        <h1 class="topbar-title">Student Dashboard</h1>
-        <p class="topbar-subtitle">Signed in as <span id="user-login">Loading...</span></p>
-      </div>
-      <button id="logout-btn" class="btn btn-secondary">Logout</button>
-    </header>
 
-    <main class="dashboard">
-      <section class="summary-grid" aria-label="Profile summary">
-        <article class="panel identity-card">
-          <p class="eyebrow">Student</p>
-          <h2 id="user-login-card">-</h2>
-          <p class="muted">User ID <span id="user-id">-</span></p>
-        </article>
+<head>
+  <meta charset="utf-8">
 
-        <article class="panel metric-card">
-          <p class="metric-label">Total XP</p>
-          <strong id="total-xp">0</strong>
-          <p class="muted">Total XP earned</p>
-        </article>
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
 
-        <article class="panel metric-card">
-          <p class="metric-label">Audit Ratio</p>
-          <strong id="audit-ratio">0.00</strong>
-          <p class="muted"><span id="audit-up">0</span> done / <span id="audit-down">0</span> received</p>
-        </article>
-      </section>
+  <title>GraphQL Profile - Dashboard</title>
 
-      <section class="charts-grid" aria-label="Dashboard charts">
-        <article class="panel chart-card chart-card-wide">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">Projects</p>
-              <h2 class="section-title">XP Added Per Project</h2>
-            </div>
+  <link
+    rel="stylesheet"
+    href="css/styles.css"
+  >
+</head>
+
+
+<body class="page page-profile">
+
+  <!-- ==========================================
+       TOP HEADER
+  =========================================== -->
+
+  <header class="topbar">
+
+    <div>
+      <p class="eyebrow">
+        GraphQL Profile
+      </p>
+
+      <h1 class="topbar-title">
+        Student Dashboard
+      </h1>
+
+      <p class="topbar-subtitle">
+        Signed in as
+        <span id="user-login">
+          Loading...
+        </span>
+      </p>
+    </div>
+
+
+    <button
+      id="logout-btn"
+      class="btn btn-secondary"
+      type="button"
+    >
+      Logout
+    </button>
+
+  </header>
+
+
+
+  <!-- ==========================================
+       DASHBOARD
+  =========================================== -->
+
+  <main class="dashboard">
+
+
+    <!-- ========================================
+         SUMMARY CARDS
+    ========================================= -->
+
+    <section
+      class="summary-grid"
+      aria-label="Profile summary"
+    >
+
+
+      <!-- Student -->
+
+      <article class="panel identity-card">
+
+        <p class="eyebrow">
+          Student
+        </p>
+
+        <h2 id="user-login-card">
+          -
+        </h2>
+
+        <p class="muted">
+          User ID
+          <span id="user-id">
+            -
+          </span>
+        </p>
+
+      </article>
+
+
+
+      <!-- Total XP -->
+
+      <article class="panel metric-card">
+
+        <p class="metric-label">
+          Total XP
+        </p>
+
+        <strong id="total-xp">
+          0 B
+        </strong>
+
+        <p class="muted">
+          Total XP earned
+        </p>
+
+      </article>
+
+
+
+      <!-- Audit Ratio -->
+
+      <article class="panel metric-card">
+
+        <p class="metric-label">
+          Audit Ratio
+        </p>
+
+        <strong id="audit-ratio">
+          0.00
+        </strong>
+
+        <p class="muted">
+
+          <span id="audit-up">
+            0 B
+          </span>
+
+          done /
+
+          <span id="audit-down">
+            0 B
+          </span>
+
+          received
+
+        </p>
+
+      </article>
+
+    </section>
+
+
+
+    <!-- ========================================
+         CHARTS
+    ========================================= -->
+
+    <section
+      class="charts-grid"
+      aria-label="Dashboard charts"
+    >
+
+
+      <!-- XP Per Project -->
+
+      <article
+        class="panel chart-card chart-card-wide"
+      >
+
+        <div class="section-heading">
+
+          <div>
+
+            <p class="eyebrow">
+              Projects
+            </p>
+
+            <h2 class="section-title">
+              XP Added Per Project
+            </h2>
+
           </div>
-          <svg id="xp-project-graph" viewBox="0 0 900 420" class="chart-svg" role="img" aria-label="XP added per project chart"></svg>
-        </article>
 
-        <article class="panel chart-card">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">Audits</p>
-              <h2 class="section-title">Audit Ratio</h2>
-            </div>
+        </div>
+
+
+        <svg
+          id="xp-project-graph"
+          viewBox="0 0 900 420"
+          class="chart-svg"
+          role="img"
+          aria-label="XP added per project chart"
+        ></svg>
+
+      </article>
+
+
+
+      <!-- Audit Ratio -->
+
+      <article class="panel chart-card">
+
+        <div class="section-heading">
+
+          <div>
+
+            <p class="eyebrow">
+              Audits
+            </p>
+
+            <h2 class="section-title">
+              Audit Ratio
+            </h2>
+
           </div>
-          <svg id="audit-ratio-graph" viewBox="0 0 520 420" class="chart-svg" role="img" aria-label="Audit ratio chart"></svg>
-        </article>
-      </section>
 
-      <p id="global-error" class="error-message page-error" aria-live="polite"></p>
-    </main>
+        </div>
 
-    <script src="js/config.js"></script>
-    <script src="js/api.js"></script>
-    <script src="js/graphs.js"></script>
-    <script src="js/profile.js"></script>
-  </body>
+
+        <svg
+          id="audit-ratio-graph"
+          viewBox="0 0 520 420"
+          class="chart-svg"
+          role="img"
+          aria-label="Audit ratio chart"
+        ></svg>
+
+      </article>
+
+    </section>
+
+
+
+    <!-- ========================================
+         ERROR MESSAGE
+    ========================================= -->
+
+    <p
+      id="global-error"
+      class="error-message page-error"
+      aria-live="polite"
+    ></p>
+
+  </main>
+
+
+
+  <!-- ==========================================
+       JAVASCRIPT
+
+       Order matters:
+
+       1. config.js gives us the API URLs
+       2. api.js gives us fetchAllData()
+       3. profile.js loads/processes/renders data
+
+       graphs.js is no longer needed because the
+       graph code will live inside profile.js.
+  =========================================== -->
+
+  <script src="js/config.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/profile.js"></script>
+
+</body>
+
 </html>

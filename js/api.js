@@ -1,126 +1,113 @@
 async function gql(query, variables = {}) {
-  const token = localStorage.getItem('jwt');
+  const jwt = localStorage.getItem('jwt');
 
-  if (!token) {
-    throw new Error('Not authenticated');
+  if (!jwt) {
+    window.location.replace('index.html');
+    return;
   }
 
   const response = await fetch(GRAPHQL_URL, {
     method: 'POST',
+
     headers: {
-      Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
+      Authorization: `Bearer ${jwt}`
     },
-    body: JSON.stringify({ query, variables }),
+
+    body: JSON.stringify({
+      query,
+      variables
+    })
   });
+
+  if (response.status === 401) {
+    localStorage.removeItem('jwt');
+    window.location.replace('index.html');
+    return;
+  }
 
   const result = await response.json();
 
-  if (!response.ok || result.errors) {
-    throw new Error(result?.errors?.[0]?.message || 'GraphQL request failed');
+  if (result.errors && result.errors.length) {
+    console.error('GraphQL errors:', result.errors);
+
+    throw new Error(
+      result.errors
+        .map(error => error.message)
+        .join('\n')
+    );
   }
 
   return result.data;
 }
 
-async function getCurrentUser() {
-  const data = await gql(`
-    {
-      user {
-        id
-        login
-      }
-    }
-  `);
 
-  if (!data.user || data.user.length === 0) {
-    throw new Error('User not found');
-  }
+const PROFILE_QUERY = `
+  query Profile {
 
-  return data.user[0];
-}
+    user {
+      id
+      login
+      totalUp
+      totalDown
 
-async function getUserXp(userId) {
-  const data = await gql(
-    `
-    query GetUserXp($userId: Int!) {
-      transaction(
-        where: {
-          userId: { _eq: $userId }
-          type: { _eq: "xp" }
-        }
-        order_by: { createdAt: asc }
+      level: transactions(
+        limit: 1
+        order_by: { createdAt: desc }
+        where: { type: { _eq: "level" } }
       ) {
-        id
         amount
-        objectId
+      }
+
+      transactions(
+        order_by: { createdAt: asc }
+        where: { type: { _eq: "xp" } }
+      ) {
+        type
+        amount
         createdAt
         path
+      }
+    }
+
+
+    projects: progress(
+      where: {
+        object: {
+          type: { _eq: "project" }
+        }
+      }
+
+      order_by: {
+        updatedAt: desc
+      }
+    ) {
+      path
+      grade
+      isDone
+
+      object {
+        name
         type
       }
     }
-    `,
-    { userId }
-  );
 
-  return data.transaction || [];
-}
 
-async function getUserAuditStats(userId) {
-  try {
-    const data = await gql(
-      `
-      query GetAuditStats($userId: Int!) {
-        user(where: { id: { _eq: $userId } }) {
-          auditRatio
-          totalUp
-          totalDown
-        }
+    results: result(
+      order_by: {
+        createdAt: desc
       }
-      `,
-      { userId }
-    );
 
-    const row = data.user?.[0];
-    if (row) {
-      const up = Number(row.totalUp) || 0;
-      const down = Number(row.totalDown) || 0;
-      const ratio = Number(row.auditRatio) || (down === 0 ? 0 : up / down);
-      return { up, down, ratio };
+      limit: 10
+    ) {
+      path
+      grade
+      createdAt
     }
-  } catch (error) {
-    console.warn('Audit summary fields unavailable, falling back to transactions:', error.message);
   }
+`;
 
-  const data = await gql(
-    `
-    query GetAuditTransactions($userId: Int!) {
-      transaction(
-        where: {
-          userId: { _eq: $userId }
-          type: { _in: ["up", "down"] }
-        }
-      ) {
-        amount
-        type
-      }
-    }
-    `,
-    { userId }
-  );
 
-  let up = 0;
-  let down = 0;
-
-  (data.transaction || []).forEach((row) => {
-    const amount = Math.abs(Number(row.amount) || 0);
-    if (row.type === 'up') up += amount;
-    if (row.type === 'down') down += amount;
-  });
-
-  return {
-    up,
-    down,
-    ratio: down === 0 ? (up > 0 ? up : 0) : up / down,
-  };
+async function fetchAllData() {
+  return await gql(PROFILE_QUERY);
 }
