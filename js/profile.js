@@ -70,6 +70,7 @@
         if (!path.startsWith('/bahrain/bh-module')) return false;
         // exclude individual piscine exercise transactions — only keep the top-level piscine summary
         if (path.startsWith('/bahrain/bh-module/piscine-js/')) return false;
+        if (path.startsWith('/bahrain/bh-module/piscine-rust/')) return false;
         return true;
       })
       .reduce(function (sum, t) {
