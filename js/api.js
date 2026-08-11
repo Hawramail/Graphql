@@ -1,28 +1,26 @@
 async function gql(query, variables = {}) {
-  const jwt = localStorage.getItem('jwt');
+  const jwt = localStorage.getItem("jwt");
 
   if (!jwt) {
-    window.location.replace('index.html');
+    window.location.replace("index.html");
     return;
   }
 
   const response = await fetch(GRAPHQL_URL, {
-    method: 'POST',
-
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${jwt}`
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${jwt}`,
     },
-
     body: JSON.stringify({
       query,
-      variables
-    })
+      variables,
+    }),
   });
 
   if (response.status === 401) {
-    localStorage.removeItem('jwt');
-    window.location.replace('index.html');
+    localStorage.removeItem("jwt");
+    window.location.replace("index.html");
     return;
   }
 
@@ -31,8 +29,8 @@ async function gql(query, variables = {}) {
   if (result.errors?.length) {
     throw new Error(
       result.errors
-        .map(error => error.message)
-        .join('\n')
+        .map((error) => error.message)
+        .join("\n")
     );
   }
 
@@ -50,11 +48,16 @@ const PROFILE_QUERY = `
       totalDown
 
       level: transactions(
-        limit: 1
-        order_by: { amount: desc }
-        where: { type: { _eq: "level" } }
+        where: {
+          type: { _eq: "level" }
+        }
+        order_by: {
+          createdAt: desc
+        }
       ) {
         amount
+        path
+        createdAt
       }
 
       transactions(
@@ -72,15 +75,22 @@ const PROFILE_QUERY = `
       }
     }
 
+    xp {
+      amount
+    }
+
     projects: progress(
       where: {
         object: { type: { _eq: "project" } }
       }
-      order_by: { updatedAt: desc }
+      order_by: {
+        updatedAt: desc
+      }
     ) {
       path
       grade
       isDone
+
       object {
         name
         type
