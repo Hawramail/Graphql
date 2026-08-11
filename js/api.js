@@ -1,132 +1,77 @@
-async function gql(
-  query,
-  variables = {}
-) {
-  const jwt =
-    localStorage.getItem("jwt");
+const PROXY = 'https://learn.reboot01.com/api/graphql-engine/v1/graphql';
 
-  if (!jwt) {
-    window.location.replace(
-      "index.html"
-    );
+async function gqlQuery(query, variables) {
+  var jwt = localStorage.getItem('jwt');
+  if (!jwt) { window.location.href = '/'; return; }
+
+  var res = await fetch(PROXY, {
+    method: 'POST',
+    headers: {
+      'Content-Type':  'application/json',
+      'Authorization': 'Bearer ' + jwt
+    },
+    body: JSON.stringify({ query: query, variables: variables || {} })
+  });
+
+  if (res.status === 401) {
+    localStorage.removeItem('jwt');
+    window.location.href = '/';
     return;
   }
 
-  const response =
-    await fetch(
-      GRAPHQL_URL,
-      {
-        method: "POST",
-
-        headers: {
-          "Content-Type":
-            "application/json",
-
-          Authorization:
-            `Bearer ${jwt}`,
-        },
-
-        body: JSON.stringify({
-          query,
-          variables,
-        }),
-      }
-    );
-
-  if (response.status === 401) {
-    localStorage.removeItem("jwt");
-
-    window.location.replace(
-      "index.html"
-    );
-
-    return;
+  var json = await res.json();
+  if (json.errors && json.errors.length) {
+    throw new Error(json.errors.map(function(e) { return e.message; }).join('\n'));
   }
-
-  const result =
-    await response.json();
-
-  if (result.errors?.length) {
-    throw new Error(
-      result.errors
-        .map(
-          (error) =>
-            error.message
-        )
-        .join("\n")
-    );
-  }
-
-  return result.data;
+  return json.data;
 }
 
-
-const PROFILE_QUERY = `
-  query Profile {
-
-    user {
-      id
-      login
-      totalUp
-      totalDown
-
-      level: transactions(
-        limit: 1
-        order_by: {
-          createdAt: desc
-        }
-        where: {
-          type: {
-            _eq: "level"
-          }
-        }
-      ) {
-        amount
-      }
-
-      transactions(
-        where: {
-          type: {
-            _eq: "xp"
-          }
-        }
-        order_by: {
-          createdAt: asc
-        }
-      ) {
-        amount
-        type
-        path
-        createdAt
-      }
-    }
-
-    projects: progress(
-      where: {
-        object: {
-          type: {
-            _eq: "project"
-          }
-        }
-      }
-      order_by: {
-        updatedAt: desc
-      }
-    ) {
-      path
-      grade
-      isDone
-
-      object {
-        name
-        type
-      }
-    }
-
-  }
-`;
-
+var DETAILED_PROFILE_QUERY =
+  'query profile {' +
+  '  user {' +
+  '    id' +
+  '    login' +
+  '    totalUp' +
+  '    totalDown' +
+  '    level: transactions(' +
+  '      limit: 1' +
+  '      order_by: { createdAt: desc }' +
+  '      where: { type: { _eq: "level" } }' +
+  '    ) {' +
+  '      amount' +
+  '    }' +
+  '    transactions(' +
+  '      order_by: { createdAt: asc }' +
+  '      where: { type: { _eq: "xp" } }' +
+  '    ) {' +
+  '      type' +
+  '      amount' +
+  '      createdAt' +
+  '      path' +
+  '    }' +
+  '    skills: transactions(' +
+  '      where: { type: { _like: "skill_%" } }' +
+  '    ) {' +
+  '      type' +
+  '      amount' +
+  '    }' +
+  '  }' +
+  '  projects: progress(' +
+  '    where: {' +
+  '      object: { type: { _eq: "project" } }' +
+  '    }' +
+  '    order_by: { updatedAt: desc }' +
+  '  ) {' +
+  '    path' +
+  '    grade' +
+  '    isDone' +
+  '    object {' +
+  '      name' +
+  '      type' +
+  '    }' +
+  '  }' +
+  '}';
 
 async function fetchAllData() {
-  return gql(PROFILE_QUERY);
+  return await gqlQuery(DETAILED_PROFILE_QUERY);
 }

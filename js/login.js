@@ -1,124 +1,89 @@
-if (localStorage.getItem("jwt")) {
-  window.location.replace("profile.html");
+// Already logged in → skip login page
+if (localStorage.getItem('jwt')) {
+  window.location.replace('./profile.html');
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  const form = document.getElementById("login-form");
-  const identifierInput = document.getElementById("identifier");
-  const passwordInput = document.getElementById("password");
-  const errorEl = document.getElementById("login-error");
-  const submitBtn = form.querySelector('button[type="submit"]');
+const loginBtn  = document.getElementById('login-btn');
+const btnText   = document.getElementById('btn-text');
+const btnLoader = document.getElementById('btn-loader');
+const errorEl   = document.getElementById('error-msg');
 
-  const defaultButtonText = submitBtn.textContent;
+function showError(msg) {
+  errorEl.textContent = msg;
+  errorEl.classList.remove('hidden');
+}
+function clearError() {
+  errorEl.classList.add('hidden');
+}
+function setLoading(on) {
+  loginBtn.disabled = on;
+  btnText.classList.toggle('hidden', on);
+  btnLoader.classList.toggle('hidden', !on);
+}
 
-  function setLoading(isLoading) {
-    submitBtn.disabled = isLoading;
-    submitBtn.textContent = isLoading
-      ? "Signing in..."
-      : defaultButtonText;
+async function doLogin() {
+  clearError();
+
+  const identifier = document.getElementById('identifier').value.trim();
+  const password   = document.getElementById('password').value;
+
+  if (!identifier || !password) {
+    showError('Please enter your username/email and password.');
+    return;
   }
 
-  function showError(message) {
-    errorEl.textContent = message;
+  setLoading(true);
+
+  try {
+    // Build Basic auth credentials — base64(identifier:password)
+const credentials = btoa(`${identifier}:${password}`);
+
+const res = await fetch('https://learn.reboot01.com/api/auth/signin', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Basic ' + credentials
   }
+});
 
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
+    const data = await res.json();
 
-    showError("");
-
-    const identifier =
-      identifierInput.value.trim();
-
-    const password =
-      passwordInput.value;
-
-    if (!identifier || !password) {
-      showError(
-        "Please enter your username/email and password."
-      );
-      return;
+    if (!res.ok) {
+      // Go passes upstream error through; show a friendly message
+      if (res.status === 401 || res.status === 403) {
+        throw new Error('Invalid credentials. Check your username/email and password.');
+      }
+      throw new Error(data.error || `Server error (${res.status})`);
     }
 
-    setLoading(true);
-
-    try {
-      const credentials =
-        btoa(`${identifier}:${password}`);
-
-      const response =
-        await fetch(SIGNIN_URL, {
-          method: "POST",
-
-          headers: {
-            Authorization:
-              `Basic ${credentials}`,
-          },
-        });
-
-      const data =
-        await response.json();
-
-      if (!response.ok) {
-        if (
-          response.status === 401 ||
-          response.status === 403
-        ) {
-          throw new Error(
-            "Invalid credentials. Check your username/email and password."
-          );
-        }
-
-        throw new Error(
-          data.error ||
-          `Server error (${response.status})`
-        );
-      }
-
-      let jwt;
-
-      if (typeof data === "string") {
-        jwt = data;
-      } else if (data.token) {
-        jwt = data.token;
-      } else if (data.access_token) {
-        jwt = data.access_token;
-      } else {
-        jwt = String(data);
-      }
-
-      if (
-        !jwt ||
-        jwt === "null" ||
-        jwt === "undefined"
-      ) {
-        throw new Error(
-          "No token received. Please try again."
-        );
-      }
-
-      localStorage.setItem(
-        "jwt",
-        jwt
-      );
-
-      window.location.replace(
-        "profile.html"
-      );
-
-    } catch (error) {
-      console.error(
-        "Login error:",
-        error
-      );
-
-      showError(
-        error.message ||
-        "Login failed."
-      );
-
-    } finally {
-      setLoading(false);
+    // reboot01 returns a raw JWT string (JSON-encoded, so it has surrounding quotes).
+    // It may be a plain string token or an object — handle both.
+    let jwt;
+    if (typeof data === 'string') {
+      jwt = data;
+    } else if (data.token) {
+      jwt = data.token;
+    } else if (data.access_token) {
+      jwt = data.access_token;
+    } else {
+      // Fallback: stringify was already parsed; use raw text if string-like
+      jwt = String(data);
     }
-  });
+
+    if (!jwt || jwt === 'null' || jwt === 'undefined') {
+      throw new Error('No token received. Please try again.');
+    }
+
+    localStorage.setItem('jwt', jwt);
+    window.location.replace('./profile.html');
+
+  } catch (err) {
+    showError(err.message);
+  } finally {
+    setLoading(false);
+  }
+}
+
+loginBtn.addEventListener('click', doLogin);
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
 });
