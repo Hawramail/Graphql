@@ -632,7 +632,7 @@ button {
 .chart-area {
   width: 100%;
 
-  min-height: 220px;
+  min-height: 170px;
 }
 
 
@@ -652,8 +652,19 @@ button {
   height: auto;
 
   display: block;
+  margin: 0 auto;
 
   overflow: visible;
+}
+
+
+.graph-wide .chart-area svg {
+  max-width: 620px;
+}
+
+
+.chart-center svg {
+  max-width: 170px;
 }
 
 
