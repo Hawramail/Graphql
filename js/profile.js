@@ -2,11 +2,11 @@
   'use strict';
 
   var jwt = localStorage.getItem('jwt');
-  if (!jwt) { window.location.replace('./index.html');; return; }
+  if (!jwt) { window.location.replace('index.html'); return; }
 
   document.getElementById('logout-btn').addEventListener('click', function () {
     localStorage.removeItem('jwt');
-    window.location.replace('./index.html');;
+    window.location.replace('index.html');
   });
 
   (async function init() {
