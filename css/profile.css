@@ -682,6 +682,17 @@ with surrounding presentation.
 }
 
 
+/* The JS hardcodes light/near-white label colors meant for a
+   dark background (donut center %, axis labels, legend text).
+   Force them dark so they're readable on this light theme —
+   the color-coded green/red/purple values are left alone. */
+.chart-area text[fill="#e8e8f0"],
+.chart-area text[fill="#555570"],
+.chart-area text[fill="#888"] {
+  fill: var(--text) !important;
+}
+
+
 /* ==========================================
    PROJECT LIST
 ========================================== */
@@ -913,9 +924,23 @@ with surrounding presentation.
       auto;
   }
 
-  .chart-area svg {
+  /* Only the wide XP timeline needs its min-width preserved
+     (and the horizontal scroll) — the small square Pass/Fail
+     and Audit Ratio charts should just shrink to fit instead
+     of blowing up to 560px on a phone screen. */
+  .graph-wide .chart-area svg {
     min-width:
-      560px;
+      480px;
+  }
+
+  .chart-center {
+    overflow-x:
+      visible;
+  }
+
+  .chart-center svg {
+    max-width: 140px;
+    min-width: 0;
   }
 
   .project-row {
