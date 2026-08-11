@@ -114,9 +114,9 @@ var failedPaths = {};
 
 projects.forEach(function (p) {
   if (!p.path) return;
-  if (p.grade >= 1) {
+  if (p.grade > 0) {
     passedPaths[p.path] = true;
-  } else if (p.grade < 1) {
+  } else if (p.grade === 0) {
     failedPaths[p.path] = true;
   }
 });
