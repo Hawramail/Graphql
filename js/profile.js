@@ -56,16 +56,20 @@ async function loadProfile() {
 
     console.log("===== DEBUG START =====");
 
-    console.log("USER LEVEL RESULT:", user.level);
+    console.log("USER LEVEL RESULT:", JSON.stringify(user.level, null, 2));
 
     console.log(
       "ALL XP TRANSACTIONS:",
-      transactions.map((tx) => ({
-        amount: tx.amount,
-        type: tx.type,
-        path: tx.path,
-        createdAt: tx.createdAt,
-      })),
+      JSON.stringify(
+        transactions.map((tx) => ({
+          amount: tx.amount,
+          type: tx.type,
+          path: tx.path,
+          createdAt: tx.createdAt,
+        })),
+        null,
+        2,
+      ),
     );
 
     const countedXPTransactions = transactions.filter((tx) => {
@@ -86,11 +90,39 @@ async function loadProfile() {
 
     console.log(
       "COUNTED XP TRANSACTIONS:",
-      countedXPTransactions.map((tx) => ({
-        amount: tx.amount,
-        path: tx.path,
-        createdAt: tx.createdAt,
-      })),
+      JSON.stringify(
+        countedXPTransactions.map((tx) => ({
+          amount: tx.amount,
+          path: tx.path,
+          createdAt: tx.createdAt,
+        })),
+        null,
+        2,
+      ),
+    );
+
+    const excludedXPTransactions = transactions.filter((tx) => {
+      if (!tx.path) return true;
+
+      const path = tx.path.toLowerCase();
+
+      return !(
+        path.startsWith("/bahrain/bh-module") &&
+        !path.startsWith("/bahrain/bh-module/piscine-js/")
+      );
+    });
+
+    console.log(
+      "EXCLUDED XP TRANSACTIONS:",
+      JSON.stringify(
+        excludedXPTransactions.map((tx) => ({
+          amount: tx.amount,
+          path: tx.path,
+          createdAt: tx.createdAt,
+        })),
+        null,
+        2,
+      ),
     );
 
     const debugTotalXP = countedXPTransactions.reduce(
