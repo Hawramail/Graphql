@@ -42,6 +42,20 @@ async function loadProfile() {
 
     /*
       ==========================================
+      LEVEL
+      ==========================================
+    */
+
+    const level =
+      user.level && user.level[0]
+        ? user.level[0].amount
+        : 0;
+
+    setText('user-level', level);
+
+
+    /*
+      ==========================================
       XP TRANSACTIONS
       ==========================================
     */
@@ -135,6 +149,53 @@ async function loadProfile() {
       'audit-down',
       fmtXP(auditDown)
     );
+
+
+    /*
+      ==========================================
+      PASS / FAIL
+
+      failed = grade === 0
+      passed = grade > 0
+
+      Only Bahrain bh-module projects,
+      excluding piscine / onboarding / exam.
+      ==========================================
+    */
+
+    const projects = (data.projects || [])
+      .filter(project => {
+        if (!project.path) return false;
+
+        const path =
+          project.path.toLowerCase();
+
+        return (
+          path.startsWith('/bahrain/bh-module') &&
+          !path.includes('piscine') &&
+          !path.includes('onboarding') &&
+          !path.includes('exam')
+        );
+      });
+
+    const passedPaths = {};
+    const failedPaths = {};
+
+    projects.forEach(project => {
+      if (!project.path) return;
+
+      if (project.grade > 0) {
+        passedPaths[project.path] = true;
+      } else if (project.grade === 0) {
+        failedPaths[project.path] = true;
+      }
+    });
+
+    const passCount = Object.keys(passedPaths).length;
+    const failCount = Object.keys(failedPaths).length;
+
+    setText('projects-passed', passCount);
+    setText('projects-failed', failCount);
 
 
     /*

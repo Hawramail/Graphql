@@ -211,6 +211,14 @@ button,input{
   letter-spacing:-.075em;
 }
 
+.metric-card strong.accent{
+  color:var(--good);
+}
+
+.metric-card strong.danger{
+  color:var(--danger);
+}
+
 .charts-grid{
   display:grid;
   grid-template-columns:minmax(0,1.35fr) minmax(320px,.85fr);

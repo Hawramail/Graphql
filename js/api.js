@@ -49,6 +49,14 @@ const PROFILE_QUERY = `
       totalUp
       totalDown
 
+      level: transactions(
+        limit: 1
+        order_by: { createdAt: desc }
+        where: { type: { _eq: "level" } }
+      ) {
+        amount
+      }
+
       transactions(
         where: {
           type: { _eq: "xp" }
@@ -61,6 +69,21 @@ const PROFILE_QUERY = `
         type
         path
         createdAt
+      }
+    }
+
+    projects: progress(
+      where: {
+        object: { type: { _eq: "project" } }
+      }
+      order_by: { updatedAt: desc }
+    ) {
+      path
+      grade
+      isDone
+      object {
+        name
+        type
       }
     }
 
