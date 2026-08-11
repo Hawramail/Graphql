@@ -308,7 +308,7 @@ button {
 
 
 /* ==========================================
-   ERRORS
+   ERRORS / STATE
 ========================================== */
 
 .error-message {
@@ -316,6 +316,98 @@ button {
   color: var(--danger);
   font-size: 14px;
   line-height: 1.5;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.loading-state {
+  padding: 60px 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.mono {
+  font-family: "Courier New", monospace;
+}
+
+
+/* ==========================================
+   JS-DRAWN CHARTS (profile.js renders its own
+   SVG/DOM into these using a fixed dark palette)
+========================================== */
+
+.chart-dark {
+  min-height: 220px;
+  padding: 16px;
+  border-radius: 12px;
+  background: #12121a;
+  overflow-x: auto;
+}
+
+.graph-tooltip {
+  position: fixed;
+  z-index: 999;
+  pointer-events: none;
+  background: #1e1e2e;
+  color: #e8e8f0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-family: "Courier New", monospace;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  transition: opacity 0.15s ease;
+  opacity: 0;
+}
+
+.project-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.project-row:last-child {
+  border-bottom: none;
+}
+
+.project-name {
+  width: 160px;
+  flex-shrink: 0;
+  overflow: hidden;
+  color: #e8e8f0;
+  font-size: 12px;
+  font-family: "Courier New", monospace;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.project-bar-wrap {
+  flex: 1;
+  height: 10px;
+  border-radius: 6px;
+  background: #1e1e2e;
+  overflow: hidden;
+}
+
+.project-bar {
+  height: 100%;
+  width: 0%;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #00ff88, #7c3aed);
+  transition: width 0.6s ease;
+}
+
+.project-xp {
+  width: 70px;
+  flex-shrink: 0;
+  text-align: right;
+  color: #00ff88;
+  font-size: 12px;
+  font-family: "Courier New", monospace;
 }
 
 

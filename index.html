@@ -83,17 +83,19 @@
 
 
         <p
-          id="login-error"
-          class="error-message"
+          id="error-msg"
+          class="error-message hidden"
           aria-live="polite"
         ></p>
 
 
         <button
-          type="submit"
+          type="button"
+          id="login-btn"
           class="login-button"
         >
-          Sign In
+          <span id="btn-text">Sign In</span>
+          <span id="btn-loader" class="hidden">Signing in&hellip;</span>
         </button>
 
       </form>

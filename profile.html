@@ -64,6 +64,15 @@
 
   <main class="dashboard">
 
+    <p id="loading" class="loading-state">
+      Loading your profile&hellip;
+    </p>
+
+    <div id="load-error" class="error-message hidden">
+      <p id="load-error-msg"></p>
+    </div>
+
+    <div id="profile-content" class="hidden">
 
     <!-- ========================================
          PROFILE HERO
@@ -161,7 +170,7 @@
           XP Given
         </p>
 
-        <strong id="audit-up">
+        <strong id="xp-up">
           0 B
         </strong>
 
@@ -174,7 +183,7 @@
           XP Received
         </p>
 
-        <strong id="audit-down">
+        <strong id="xp-down">
           0 B
         </strong>
 
@@ -223,7 +232,65 @@
     <section class="graphs-grid">
 
 
-      <!-- XP PROJECT GRAPH -->
+      <!-- XP OVER TIME -->
+
+      <article class="graph-card graph-wide">
+
+        <div class="graph-heading">
+
+          <div>
+
+            <p class="eyebrow">
+              Progress
+            </p>
+
+            <h2>
+              XP Over Time
+            </h2>
+
+          </div>
+
+        </div>
+
+
+        <div
+          id="xp-timeline-chart"
+          class="chart-dark"
+        ></div>
+
+      </article>
+
+
+      <!-- PASS / FAIL DONUT -->
+
+      <article class="graph-card">
+
+        <div class="graph-heading">
+
+          <div>
+
+            <p class="eyebrow">
+              Projects
+            </p>
+
+            <h2>
+              Pass / Fail
+            </h2>
+
+          </div>
+
+        </div>
+
+
+        <div
+          id="pass-fail-chart"
+          class="chart-dark"
+        ></div>
+
+      </article>
+
+
+      <!-- TOP PROJECTS BY XP -->
 
       <article class="graph-card graph-wide">
 
@@ -236,7 +303,7 @@
             </p>
 
             <h2>
-              XP Added Per Project
+              Top Projects by XP
             </h2>
 
           </div>
@@ -244,13 +311,10 @@
         </div>
 
 
-        <svg
-          id="xp-project-graph"
-          viewBox="0 0 900 420"
-          class="chart-svg"
-          role="img"
-          aria-label="XP added per project chart"
-        ></svg>
+        <div
+          id="projects-list"
+          class="chart-dark"
+        ></div>
 
       </article>
 
@@ -276,30 +340,17 @@
         </div>
 
 
-        <svg
-          id="audit-ratio-graph"
-          viewBox="0 0 520 420"
-          class="chart-svg"
-          role="img"
-          aria-label="Audit ratio chart"
-        ></svg>
+        <div
+          id="audit-chart"
+          class="chart-dark"
+        ></div>
 
       </article>
 
 
     </section>
 
-
-    <!-- ========================================
-         ERROR
-    ========================================= -->
-
-    <p
-      id="global-error"
-      class="error-message"
-      aria-live="polite"
-    ></p>
-
+    </div>
 
   </main>
 
