@@ -42,9 +42,8 @@ async function loadProfile() {
     // ==========================================
     // LEVEL
     //
-    // Prefer levels belonging to bh-module.
-    // If none have a usable path, fall back to
-    // the highest level transaction overall.
+    // Prefer Bahrain bh-module level entries.
+    // If none exist, use the highest level found.
     // ==========================================
 
     const allLevels = user.level || [];
@@ -85,57 +84,42 @@ async function loadProfile() {
     // ==========================================
     // TOTAL XP
     //
-    // Use the xp view supplied by 01-edu.
-    // It represents the current XP amount.
-    //
-    // Fall back to transaction calculation only
-    // if the xp view is unavailable.
+    // Same approach as the working version:
+    // only Bahrain bh-module XP,
+    // excluding individual piscine-js exercises.
     // ==========================================
 
-    let totalXP = 0;
+    const totalXP = transactions
+      .filter((tx) => {
+        if (!tx.path) return false;
 
-    if (
-      Array.isArray(data.xp) &&
-      data.xp.length > 0
-    ) {
-      totalXP =
-        Number(data.xp[0].amount) || 0;
-    } else {
-      totalXP = transactions
+        const path =
+          tx.path.toLowerCase();
 
-        .filter((tx) => {
-          if (!tx.path) return false;
+        if (
+          !path.startsWith(
+            "/bahrain/bh-module"
+          )
+        ) {
+          return false;
+        }
 
-          const path =
-            tx.path.toLowerCase();
+        if (
+          path.startsWith(
+            "/bahrain/bh-module/piscine-js/"
+          )
+        ) {
+          return false;
+        }
 
-          if (
-            !path.startsWith(
-              "/bahrain/bh-module"
-            )
-          ) {
-            return false;
-          }
-
-          if (
-            path.startsWith(
-              "/bahrain/bh-module/piscine-js/"
-            )
-          ) {
-            return false;
-          }
-
-          return true;
-        })
-
-        .reduce(
-          (sum, tx) =>
-            sum +
-            (Number(tx.amount) || 0),
-
-          0
-        );
-    }
+        return true;
+      })
+      .reduce(
+        (sum, tx) =>
+          sum +
+          (Number(tx.amount) || 0),
+        0
+      );
 
     setText(
       "total-xp",
@@ -361,7 +345,6 @@ function buildProjectXP(
   );
 
   return Object.entries(map)
-
     .map(
       ([path, xp]) => ({
         path,
@@ -375,17 +358,14 @@ function buildProjectXP(
         xp,
       })
     )
-
     .filter(
       (project) =>
         project.xp > 0
     )
-
     .sort(
       (a, b) =>
         b.xp - a.xp
     )
-
     .slice(0, 10);
 }
 

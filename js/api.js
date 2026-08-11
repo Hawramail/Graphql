@@ -8,10 +8,12 @@ async function gql(query, variables = {}) {
 
   const response = await fetch(GRAPHQL_URL, {
     method: "POST",
+
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${jwt}`,
     },
+
     body: JSON.stringify({
       query,
       variables,
@@ -73,10 +75,6 @@ const PROFILE_QUERY = `
         path
         createdAt
       }
-    }
-
-    xp {
-      amount
     }
 
     projects: progress(
