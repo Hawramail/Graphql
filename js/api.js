@@ -2,7 +2,7 @@ const PROXY = 'https://learn.reboot01.com/api/graphql-engine/v1/graphql';
 
 async function gqlQuery(query, variables) {
   var jwt = localStorage.getItem('jwt');
-  if (!jwt) { window.location.href = '/'; return; }
+  if (!jwt) { window.location.href = './index.html'; return; }
 
   var res = await fetch(PROXY, {
     method: 'POST',
@@ -15,7 +15,7 @@ async function gqlQuery(query, variables) {
 
   if (res.status === 401) {
     localStorage.removeItem('jwt');
-    window.location.href = '/';
+    window.location.href = './index.html';
     return;
   }
 

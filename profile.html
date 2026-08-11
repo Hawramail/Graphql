@@ -2,23 +2,29 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
 
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0"
-  />
+  >
 
-  <title>GraphQL Profile - Dashboard</title>
+  <title>GraphQL Profile — Dashboard</title>
 
   <link
     rel="stylesheet"
     href="css/profile.css"
-  />
+  >
 </head>
 
 
 <body>
+
+  <!-- Background decoration -->
+
+  <div class="background-orb orb-one"></div>
+  <div class="background-orb orb-two"></div>
+
 
   <!-- ==========================================
        HEADER
@@ -26,31 +32,39 @@
 
   <header class="topbar">
 
-    <div class="brand-area">
+    <div class="brand">
 
-      <p class="eyebrow">
-        GraphQL Profile
-      </p>
+      <span class="brand-badge">
+        01
+      </span>
 
-      <h1>
-        Student Dashboard
-      </h1>
+      <div>
+        <p class="eyebrow">
+          Reboot Profile
+        </p>
+
+        <h1>
+          Student Dashboard
+        </h1>
+      </div>
 
     </div>
 
 
-    <div class="header-actions">
+    <div class="header-right">
 
-      <span id="header-login">
-        Loading...
-      </span>
+      <span
+        id="header-login"
+        class="header-user"
+      ></span>
+
 
       <button
         id="logout-btn"
-        type="button"
         class="logout-button"
+        type="button"
       >
-        Logout
+        Log Out
       </button>
 
     </div>
@@ -64,237 +78,322 @@
 
   <main class="dashboard">
 
-    <p id="loading" class="loading-state">
-      Loading your profile&hellip;
-    </p>
 
-    <div id="load-error" class="error-message hidden">
-      <p id="load-error-msg"></p>
+    <!-- Loading -->
+
+    <div
+      id="loading"
+      class="loading-screen"
+    >
+
+      <div class="loader"></div>
+
+      <p>
+        Loading your profile...
+      </p>
+
     </div>
 
-    <div id="profile-content" class="hidden">
+
+    <!-- Error -->
+
+    <div
+      id="load-error"
+      class="load-error hidden"
+    >
+
+      <strong>
+        Unable to load profile
+      </strong>
+
+      <p id="load-error-msg">
+        Something went wrong.
+      </p>
+
+
+      <button
+        class="retry-button"
+        onclick="window.location.reload()"
+      >
+        Retry
+      </button>
+
+    </div>
+
 
     <!-- ========================================
-         PROFILE HERO
+         PROFILE CONTENT
     ========================================= -->
 
-    <section class="hero-card">
-
-      <div class="profile-info">
-
-        <div
-          id="avatar-char"
-          class="avatar"
-        >
-          ?
-        </div>
+    <div
+      id="profile-content"
+      class="hidden"
+    >
 
 
-        <div>
+      <!-- HERO -->
 
-          <p class="eyebrow">
-            Student
-          </p>
+      <section class="hero-card">
 
-          <h2 id="user-login">
-            Loading...
-          </h2>
+        <div class="profile-info">
 
-          <p
-            id="user-id"
-            class="muted"
+          <div
+            id="avatar-char"
+            class="avatar"
           >
-            -
+            ?
+          </div>
+
+
+          <div>
+
+            <p class="eyebrow">
+              Student
+            </p>
+
+            <h2 id="user-login">
+              -
+            </h2>
+
+            <p
+              id="user-id"
+              class="muted"
+            >
+              -
+            </p>
+
+          </div>
+
+        </div>
+
+
+        <div class="hero-stats">
+
+          <div class="stat-chip">
+
+            <span class="stat-label">
+              Total XP
+            </span>
+
+            <strong id="total-xp">
+              —
+            </strong>
+
+          </div>
+
+
+          <div class="stat-chip">
+
+            <span class="stat-label">
+              Audit Ratio
+            </span>
+
+            <strong id="audit-ratio">
+              —
+            </strong>
+
+          </div>
+
+
+          <div class="stat-chip">
+
+            <span class="stat-label">
+              Current Level
+            </span>
+
+            <strong id="user-level">
+              —
+            </strong>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- ========================================
+           INFO CARDS
+      ========================================= -->
+
+      <section class="summary-grid">
+
+
+        <article class="summary-card">
+
+          <p class="card-label">
+            XP Given
           </p>
 
-        </div>
-
-      </div>
-
-
-      <div class="hero-stats">
-
-        <div class="stat">
-
-          <span class="stat-label">
-            Total XP
-          </span>
-
-          <strong id="total-xp">
-            0 B
+          <strong id="xp-up">
+            —
           </strong>
 
-        </div>
-
-
-        <div class="stat">
-
-          <span class="stat-label">
-            Audit Ratio
+          <span class="card-caption">
+            Audits completed
           </span>
 
-          <strong id="audit-ratio">
-            0.0
+        </article>
+
+
+        <article class="summary-card">
+
+          <p class="card-label">
+            XP Received
+          </p>
+
+          <strong id="xp-down">
+            —
           </strong>
 
-        </div>
-
-
-        <div class="stat">
-
-          <span class="stat-label">
-            Current Level
+          <span class="card-caption">
+            Audits received
           </span>
 
-          <strong id="user-level">
-            0
+        </article>
+
+
+        <article class="summary-card">
+
+          <p class="card-label">
+            Projects Passed
+          </p>
+
+          <strong
+            id="projects-passed"
+            class="success"
+          >
+            —
           </strong>
 
-        </div>
+          <span class="card-caption">
+            Successful projects
+          </span>
 
-      </div>
-
-    </section>
-
-
-    <!-- ========================================
-         SUMMARY CARDS
-    ========================================= -->
-
-    <section class="summary-grid">
+        </article>
 
 
-      <article class="card">
+        <article class="summary-card">
 
-        <p class="card-label">
-          XP Given
-        </p>
+          <p class="card-label">
+            Projects Failed
+          </p>
 
-        <strong id="xp-up">
-          0 B
-        </strong>
+          <strong
+            id="projects-failed"
+            class="danger"
+          >
+            —
+          </strong>
 
-      </article>
+          <span class="card-caption">
+            Failed attempts
+          </span>
 
-
-      <article class="card">
-
-        <p class="card-label">
-          XP Received
-        </p>
-
-        <strong id="xp-down">
-          0 B
-        </strong>
-
-      </article>
+        </article>
 
 
-      <article class="card">
-
-        <p class="card-label">
-          Projects Passed
-        </p>
-
-        <strong
-          id="projects-passed"
-          class="success"
-        >
-          0
-        </strong>
-
-      </article>
+      </section>
 
 
-      <article class="card">
+      <!-- ========================================
+           GRAPHS
+      ========================================= -->
 
-        <p class="card-label">
-          Projects Failed
-        </p>
-
-        <strong
-          id="projects-failed"
-          class="danger"
-        >
-          0
-        </strong>
-
-      </article>
+      <section class="graphs-grid">
 
 
-    </section>
+        <!-- XP TIMELINE -->
 
+        <article class="graph-card graph-wide">
 
-    <!-- ========================================
-         GRAPHS
-    ========================================= -->
+          <div class="section-heading">
 
-    <section class="graphs-grid">
+            <div>
+              <p class="eyebrow">
+                Progress
+              </p>
 
-
-      <!-- XP OVER TIME -->
-
-      <article class="graph-card graph-wide">
-
-        <div class="graph-heading">
-
-          <div>
-
-            <p class="eyebrow">
-              Progress
-            </p>
-
-            <h2>
-              XP Over Time
-            </h2>
+              <h2>
+                XP Earned Over Time
+              </h2>
+            </div>
 
           </div>
 
-        </div>
+
+          <div
+            id="xp-timeline-chart"
+            class="chart-area"
+          ></div>
+
+        </article>
 
 
-        <div
-          id="xp-timeline-chart"
-          class="chart-dark"
-        ></div>
+        <!-- PASS FAIL -->
 
-      </article>
+        <article class="graph-card">
 
+          <div class="section-heading">
 
-      <!-- PASS / FAIL DONUT -->
+            <div>
+              <p class="eyebrow">
+                Projects
+              </p>
 
-      <article class="graph-card">
-
-        <div class="graph-heading">
-
-          <div>
-
-            <p class="eyebrow">
-              Projects
-            </p>
-
-            <h2>
-              Pass / Fail
-            </h2>
+              <h2>
+                Pass / Fail
+              </h2>
+            </div>
 
           </div>
 
-        </div>
+
+          <div
+            id="pass-fail-chart"
+            class="chart-area chart-center"
+          ></div>
+
+        </article>
 
 
-        <div
-          id="pass-fail-chart"
-          class="chart-dark"
-        ></div>
+        <!-- AUDITS -->
 
-      </article>
+        <article class="graph-card">
+
+          <div class="section-heading">
+
+            <div>
+              <p class="eyebrow">
+                Audits
+              </p>
+
+              <h2>
+                Audit Ratio
+              </h2>
+            </div>
+
+          </div>
 
 
-      <!-- TOP PROJECTS BY XP -->
+          <div
+            id="audit-chart"
+            class="chart-area chart-center"
+          ></div>
 
-      <article class="graph-card graph-wide">
+        </article>
 
-        <div class="graph-heading">
+
+      </section>
+
+
+      <!-- ========================================
+           PROJECTS
+      ========================================= -->
+
+      <section class="projects-card">
+
+        <div class="section-heading">
 
           <div>
 
@@ -313,42 +412,11 @@
 
         <div
           id="projects-list"
-          class="chart-dark"
+          class="projects-list"
         ></div>
 
-      </article>
+      </section>
 
-
-      <!-- AUDIT GRAPH -->
-
-      <article class="graph-card">
-
-        <div class="graph-heading">
-
-          <div>
-
-            <p class="eyebrow">
-              Audits
-            </p>
-
-            <h2>
-              Audit Ratio
-            </h2>
-
-          </div>
-
-        </div>
-
-
-        <div
-          id="audit-chart"
-          class="chart-dark"
-        ></div>
-
-      </article>
-
-
-    </section>
 
     </div>
 
