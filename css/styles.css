@@ -1,18 +1,18 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
 
 :root{
-  --bg:#0b1020;
-  --surface:#11182b;
-  --surface-2:#151f36;
-  --surface-3:#1b2742;
-  --text:#f8fafc;
-  --muted:#9aa8bd;
-  --line:rgba(255,255,255,.1);
-  --accent:#38bdf8;
-  --accent-2:#a78bfa;
-  --good:#34d399;
-  --danger:#fb7185;
-  --shadow:0 24px 70px rgba(0,0,0,.35);
+  --bg:#f5f2fb;
+  --surface:#ffffff;
+  --surface-2:#f8f4fc;
+  --surface-3:#efe7f9;
+  --text:#3d3752;
+  --muted:#8a82a0;
+  --line:rgba(61,55,82,.12);
+  --accent:#5f92cf;
+  --accent-2:#9b7fce;
+  --good:#4f9d6d;
+  --danger:#d1626f;
+  --shadow:0 24px 60px rgba(120,105,160,.16);
 }
 
 *{
@@ -30,9 +30,9 @@ body{
   font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   color:var(--text);
   background:
-    radial-gradient(circle at 10% 0%,rgba(56,189,248,.24),transparent 30rem),
-    radial-gradient(circle at 90% 10%,rgba(167,139,250,.2),transparent 28rem),
-    linear-gradient(180deg,#080c18 0%,var(--bg) 45%,#080c18 100%);
+    radial-gradient(circle at 10% 0%,rgba(95,146,207,.16),transparent 30rem),
+    radial-gradient(circle at 90% 10%,rgba(155,127,206,.14),transparent 28rem),
+    linear-gradient(180deg,#faf8fd 0%,var(--bg) 45%,#f2edf9 100%);
 }
 
 body::before{
@@ -42,8 +42,8 @@ body::before{
   z-index:-1;
   pointer-events:none;
   background-image:
-    linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);
+    linear-gradient(rgba(61,55,82,.05) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(61,55,82,.05) 1px,transparent 1px);
   background-size:44px 44px;
   mask-image:linear-gradient(to bottom,black,transparent 78%);
 }
@@ -63,7 +63,7 @@ button,input{
 .card,.panel{
   border:1px solid var(--line);
   border-radius:28px;
-  background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.035));
+  background:linear-gradient(180deg,rgba(255,255,255,.92),rgba(255,255,255,.7));
   box-shadow:var(--shadow);
   backdrop-filter:blur(18px);
 }
@@ -106,16 +106,16 @@ button,input{
   border-radius:16px;
   outline:none;
   color:var(--text);
-  background:rgba(10,16,30,.76);
+  background:rgba(255,255,255,.7);
 }
 
 .input::placeholder{
-  color:#64748b;
+  color:#a79fc0;
 }
 
 .input:focus{
-  border-color:rgba(56,189,248,.9);
-  box-shadow:0 0 0 4px rgba(56,189,248,.12);
+  border-color:rgba(95,146,207,.85);
+  box-shadow:0 0 0 4px rgba(95,146,207,.16);
 }
 
 .btn{
@@ -133,18 +133,18 @@ button,input{
 
 .btn-primary{
   margin-top:10px;
-  color:#04111f;
-  background:linear-gradient(135deg,var(--accent),#7dd3fc);
+  color:#fbfaff;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
 }
 
 .btn-secondary{
   color:var(--text);
   border:1px solid var(--line);
-  background:rgba(255,255,255,.08);
+  background:rgba(61,55,82,.05);
 }
 
 .btn-secondary:hover{
-  background:rgba(255,255,255,.13);
+  background:rgba(61,55,82,.09);
 }
 
 /* DASHBOARD */
@@ -158,7 +158,7 @@ button,input{
   gap:20px;
   border:1px solid var(--line);
   border-radius:32px;
-  background:rgba(12,18,34,.72);
+  background:rgba(255,255,255,.78);
   box-shadow:var(--shadow);
   backdrop-filter:blur(18px);
 }
@@ -246,7 +246,7 @@ button,input{
 }
 
 .chart-track{
-  fill:rgba(148,163,184,.16);
+  fill:rgba(61,55,82,.1);
 }
 
 .chart-bar{
@@ -272,7 +272,7 @@ button,input{
 
 .donut-track{
   fill:none;
-  stroke:rgba(148,163,184,.16);
+  stroke:rgba(61,55,82,.1);
   stroke-width:34;
 }
 

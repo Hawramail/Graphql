@@ -163,7 +163,7 @@ async function loadProfile() {
       ==========================================
     */
 
-    const projects = (data.projects || [])
+    const gradedProjects = (data.projects || [])
       .filter(project => {
         if (!project.path) return false;
 
@@ -181,7 +181,7 @@ async function loadProfile() {
     const passedPaths = {};
     const failedPaths = {};
 
-    projects.forEach(project => {
+    gradedProjects.forEach(project => {
       if (!project.path) return;
 
       if (project.grade > 0) {
