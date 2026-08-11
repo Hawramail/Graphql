@@ -28,9 +28,7 @@ async function gql(query, variables = {}) {
 
   const result = await response.json();
 
-  if (result.errors && result.errors.length) {
-    console.error('GraphQL errors:', result.errors);
-
+  if (result.errors?.length) {
     throw new Error(
       result.errors
         .map(error => error.message)
@@ -51,63 +49,25 @@ const PROFILE_QUERY = `
       totalUp
       totalDown
 
-      level: transactions(
-        limit: 1
-        order_by: { createdAt: desc }
-        where: { type: { _eq: "level" } }
-      ) {
-        amount
-      }
-
       transactions(
-        order_by: { createdAt: asc }
-        where: { type: { _eq: "xp" } }
-      ) {
-        type
-        amount
-        createdAt
-        path
-      }
-    }
-
-
-    projects: progress(
-      where: {
-        object: {
-          type: { _eq: "project" }
+        where: {
+          type: { _eq: "xp" }
         }
-      }
-
-      order_by: {
-        updatedAt: desc
-      }
-    ) {
-      path
-      grade
-      isDone
-
-      object {
-        name
+        order_by: {
+          createdAt: asc
+        }
+      ) {
+        amount
         type
+        path
+        createdAt
       }
     }
 
-
-    results: result(
-      order_by: {
-        createdAt: desc
-      }
-
-      limit: 10
-    ) {
-      path
-      grade
-      createdAt
-    }
   }
 `;
 
 
 async function fetchAllData() {
-  return await gql(PROFILE_QUERY);
+  return gql(PROFILE_QUERY);
 }

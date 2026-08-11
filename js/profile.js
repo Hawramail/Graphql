@@ -9,12 +9,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const logoutBtn =
     document.getElementById('logout-btn');
 
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', () => {
-      localStorage.removeItem('jwt');
-      window.location.replace('index.html');
-    });
-  }
+  logoutBtn.addEventListener('click', () => {
+    localStorage.removeItem('jwt');
+    window.location.replace('index.html');
+  });
 
   loadProfile();
 });
@@ -24,8 +22,7 @@ async function loadProfile() {
   try {
     const data = await fetchAllData();
 
-    const user =
-      data.user && data.user[0];
+    const user = data.user?.[0];
 
     if (!user) {
       throw new Error('No user data returned.');
@@ -33,180 +30,82 @@ async function loadProfile() {
 
 
     /*
-      -------------------------------------------
-      PROJECTS
-      -------------------------------------------
+      ==========================================
+      USER INFORMATION
+      ==========================================
     */
 
-    const projects =
-      (data.projects || []).filter(project => {
-        if (!project.path) {
-          return false;
-        }
-
-        const path =
-          project.path.toLowerCase();
-
-        return (
-          path.startsWith('/bahrain/bh-module') &&
-          !path.includes('piscine') &&
-          !path.includes('onboarding') &&
-          !path.includes('exam')
-        );
-      });
+    setText('user-login', user.login);
+    setText('user-login-card', user.login);
+    setText('user-id', user.id);
 
 
     /*
-      -------------------------------------------
-      XP FOR GRAPH
-      -------------------------------------------
-
-      This filter is for the XP timeline only.
+      ==========================================
+      XP TRANSACTIONS
+      ==========================================
     */
 
-    const graphXp =
-      (user.transactions || []).filter(tx => {
-        if (!tx.type) {
-          return false;
-        }
+    const transactions =
+      user.transactions || [];
 
-        if (tx.type.toLowerCase() !== 'xp') {
-          return false;
-        }
 
-        if (!tx.path) {
-          return false;
-        }
+    /*
+      ==========================================
+      TOTAL XP
+
+      Match the successful logic:
+
+      1. only Bahrain bh-module XP
+      2. remove individual piscine-js exercises
+      ==========================================
+    */
+
+    const totalXP = transactions
+
+      .filter(tx => {
+        if (!tx.path) return false;
 
         const path =
           tx.path.toLowerCase();
 
-        return (
-          path.startsWith('/bahrain/bh-module') &&
-          !path.includes('piscine') &&
-          !path.includes('onboarding') &&
-          !path.includes('exam')
-        );
-      });
+        if (
+          !path.startsWith(
+            '/bahrain/bh-module'
+          )
+        ) {
+          return false;
+        }
+
+        if (
+          path.startsWith(
+            '/bahrain/bh-module/piscine-js/'
+          )
+        ) {
+          return false;
+        }
+
+        return true;
+      })
+
+      .reduce(
+        (sum, tx) =>
+          sum + (Number(tx.amount) || 0),
+
+        0
+      );
+
+
+    setText(
+      'total-xp',
+      fmtXP(totalXP)
+    );
 
 
     /*
-      -------------------------------------------
-      TOTAL XP
-      -------------------------------------------
-
-      IMPORTANT:
-
-      This matches your friend's successful logic.
-
-      Keep Bahrain module XP.
-
-      Exclude only individual piscine-js exercise
-      transactions.
-
-      Do NOT calculate total XP from graphXp.
-    */
-
-    const totalXp =
-      (user.transactions || [])
-
-        .filter(tx => {
-          if (!tx.type) {
-            return false;
-          }
-
-          if (tx.type.toLowerCase() !== 'xp') {
-            return false;
-          }
-
-          if (!tx.path) {
-            return false;
-          }
-
-          const path =
-            tx.path.toLowerCase();
-
-
-          if (
-            !path.startsWith('/bahrain/bh-module')
-          ) {
-            return false;
-          }
-
-
-          if (
-            path.startsWith(
-              '/bahrain/bh-module/piscine-js/'
-            )
-          ) {
-            return false;
-          }
-
-
-          return true;
-        })
-
-        .reduce((sum, tx) => {
-          return (
-            sum +
-            (Number(tx.amount) || 0)
-          );
-        }, 0);
-
-
-    /*
-      -------------------------------------------
-      PASS / FAIL
-      -------------------------------------------
-
-      Count unique project paths.
-    */
-
-    const passedPaths = {};
-    const failedPaths = {};
-
-
-    projects.forEach(project => {
-      if (!project.path) {
-        return;
-      }
-
-      const grade =
-        Number(project.grade);
-
-      if (grade > 0) {
-        passedPaths[project.path] = true;
-      }
-
-      else if (grade === 0) {
-        failedPaths[project.path] = true;
-      }
-    });
-
-
-    const passCount =
-      Object.keys(passedPaths).length;
-
-    const failCount =
-      Object.keys(failedPaths).length;
-
-
-    /*
-      -------------------------------------------
-      LEVEL
-      -------------------------------------------
-    */
-
-    const level =
-      user.level && user.level[0]
-        ? user.level[0].amount
-        : 0;
-
-
-    /*
-      -------------------------------------------
+      ==========================================
       AUDIT RATIO
-      -------------------------------------------
+      ==========================================
     */
 
     const auditUp =
@@ -215,92 +114,74 @@ async function loadProfile() {
     const auditDown =
       Number(user.totalDown) || 0;
 
-    const auditRatio =
+
+    const ratio =
       auditDown > 0
         ? (auditUp / auditDown).toFixed(1)
         : 'N/A';
 
 
-    /*
-      -------------------------------------------
-      DISPLAY
-      -------------------------------------------
-    */
-
-    setText('user-login', user.login);
-    setText('user-login-card', user.login);
-    setText('user-id', user.id);
-
-    setText('user-level', level);
-
-    setText(
-      'total-xp',
-      fmtXP(totalXp)
-    );
-
-    setText(
-      'pass-count',
-      passCount
-    );
-
-    setText(
-      'fail-count',
-      failCount
-    );
-
-    setText(
-      'total-attempts',
-      passCount + failCount
-    );
-
     setText(
       'audit-ratio',
-      auditRatio
+      ratio
     );
 
     setText(
-      'xp-up',
+      'audit-up',
       fmtXP(auditUp)
     );
 
     setText(
-      'xp-down',
+      'audit-down',
       fmtXP(auditDown)
     );
 
 
     /*
-      Count unique project paths that generated XP
+      ==========================================
+      XP PER PROJECT
+
+      This is DIFFERENT from total XP.
+
+      For this graph we exclude:
+      - piscine
+      - onboarding
+      - exam
+      ==========================================
     */
 
-    const xpProjectPaths =
-      new Set(
-        graphXp
-          .map(tx => tx.path)
-          .filter(Boolean)
+    const projectTransactions =
+      transactions.filter(tx => {
+        if (!tx.path) return false;
+
+        const path =
+          tx.path.toLowerCase();
+
+        return (
+          path.startsWith(
+            '/bahrain/bh-module'
+          ) &&
+          !path.includes('piscine') &&
+          !path.includes('onboarding') &&
+          !path.includes('exam')
+        );
+      });
+
+
+    const projects =
+      buildProjectXP(
+        projectTransactions
       );
 
-    setText(
-      'xp-projects',
-      xpProjectPaths.size
+
+    drawProjectXPGraph(
+      projects
     );
 
 
-    /*
-      -------------------------------------------
-      OTHER UI
-      -------------------------------------------
-    */
-
-    renderRecentResults(
-      data.results || []
-    );
-
-    drawXpGraph(graphXp);
-
-    drawPassFailGraph(
-      passCount,
-      failCount
+    drawAuditGraph(
+      auditUp,
+      auditDown
     );
 
 
@@ -310,24 +191,20 @@ async function loadProfile() {
       error
     );
 
-    const errorEl =
-      document.getElementById(
-        'global-error'
-      );
-
-    if (errorEl) {
-      errorEl.textContent =
-        error.message ||
-        'Failed to load profile.';
-    }
+    setText(
+      'global-error',
+      error.message ||
+        'Failed to load profile.'
+    );
   }
 }
 
 
+
 /*
-  ==================================================
-  SIMPLE TEXT HELPER
-  ==================================================
+  ==========================================
+  TEXT HELPER
+  ==========================================
 */
 
 function setText(id, value) {
@@ -341,135 +218,130 @@ function setText(id, value) {
 }
 
 
+
 /*
-  ==================================================
+  ==========================================
   XP FORMATTER
-  ==================================================
 
-  Raw GraphQL value:
-      125000
+  GraphQL returns raw numbers.
 
-  Display:
-      125 kB
+  We display:
 
-  This matches your friend's formatter.
+  500       -> 500 B
+  125000    -> 125 kB
+  1500000   -> 1.50 MB
+  ==========================================
 */
 
-function fmtXP(n) {
-  n = Number(n) || 0;
+function fmtXP(value) {
+  const xp =
+    Number(value) || 0;
 
-  if (n >= 1000000) {
+  if (xp >= 1000000) {
     return (
-      (n / 1000000).toFixed(2)
+      (xp / 1000000).toFixed(2)
       + ' MB'
     );
   }
 
-  if (n >= 1000) {
+  if (xp >= 1000) {
     return (
-      Math.round(n / 1000)
+      Math.round(xp / 1000)
       + ' kB'
     );
   }
 
-  return n + ' B';
+  return xp + ' B';
 }
 
 
+
 /*
-  ==================================================
-  RECENT RESULTS
-  ==================================================
+  ==========================================
+  BUILD XP PER PROJECT
+  ==========================================
+
+  Several XP transactions may refer to
+  the same path.
+
+  We keep the largest XP amount for
+  each project path.
+  ==========================================
 */
 
-function renderRecentResults(results) {
-  const list =
-    document.getElementById(
-      'recent-results-list'
-    );
+function buildProjectXP(transactions) {
+  const map = {};
 
-  if (!list) {
-    return;
-  }
+  transactions.forEach(tx => {
+    if (!tx.path) return;
 
-  list.innerHTML = '';
-
-  if (!results.length) {
-    const li =
-      document.createElement('li');
-
-    li.textContent =
-      'No recent results found.';
-
-    list.appendChild(li);
-
-    return;
-  }
+    const amount =
+      Number(tx.amount) || 0;
 
 
-  results.forEach(result => {
-    const li =
-      document.createElement('li');
-
-    const grade =
-      Number(result.grade);
-
-    const status =
-      grade > 0
-        ? 'PASS'
-        : grade === 0
-          ? 'FAIL'
-          : 'N/A';
-
-    const date =
-      result.createdAt
-        ? new Date(
-            result.createdAt
-          ).toLocaleDateString()
-        : 'Unknown date';
-
-    li.textContent =
-      `${status} - ${
-        result.path || 'Unknown'
-      } - ${date}`;
-
-    list.appendChild(li);
+    if (
+      !map[tx.path] ||
+      amount > map[tx.path]
+    ) {
+      map[tx.path] = amount;
+    }
   });
+
+
+  return Object.entries(map)
+
+    .map(([path, xp]) => ({
+      path,
+
+      name:
+        path
+          .split('/')
+          .filter(Boolean)
+          .pop(),
+
+      xp
+    }))
+
+    .filter(project =>
+      project.xp > 0
+    )
+
+    .sort(
+      (a, b) =>
+        b.xp - a.xp
+    )
+
+    .slice(0, 10);
 }
 
 
+
 /*
-  ==================================================
-  XP GRAPH
-  ==================================================
+  ==========================================
+  XP PER PROJECT SVG GRAPH
+  ==========================================
 */
 
-function drawXpGraph(transactions) {
+function drawProjectXPGraph(projects) {
   const svg =
     document.getElementById(
-      'xp-graph'
+      'xp-project-graph'
     );
 
-  if (!svg) {
-    return;
-  }
+  if (!svg) return;
 
   svg.innerHTML = '';
 
-  const width = 700;
-  const height = 260;
-  const padding = 40;
 
-
-  if (!transactions.length) {
+  if (!projects.length) {
     svg.innerHTML = `
       <text
-        x="350"
-        y="130"
+        x="450"
+        y="210"
         text-anchor="middle"
-        fill="#666"
+        class="chart-empty"
       >
-        No XP data
+        No project XP data available
       </text>
     `;
 
@@ -477,288 +349,411 @@ function drawXpGraph(transactions) {
   }
 
 
-  const sorted =
-    [...transactions].sort(
-      (a, b) =>
-        new Date(a.createdAt)
-        -
-        new Date(b.createdAt)
-    );
+  const width = 900;
+
+  const left = 170;
+  const right = 90;
+  const top = 30;
+
+  const rowHeight = 36;
+
+  const graphWidth =
+    width - left - right;
 
 
-  let cumulativeXp = 0;
-
-
-  const points =
-    sorted.map(tx => {
-      const amount =
-        Number(tx.amount) || 0;
-
-      cumulativeXp += amount;
-
-      return {
-        date:
-          new Date(tx.createdAt),
-
-        amount,
-
-        total:
-          cumulativeXp,
-
-        path:
-          tx.path || ''
-      };
-    });
-
-
-  const minDate =
-    points[0].date.getTime();
-
-  const maxDate =
-    points[
-      points.length - 1
-    ].date.getTime();
-
-  const maxXp =
+  const maxXP =
     Math.max(
-      ...points.map(
-        point => point.total
-      ),
-      1
+      ...projects.map(
+        project => project.xp
+      )
     );
 
 
-  const scaleX = date => {
-    return (
-      padding +
-      (
+  projects.forEach(
+    (project, index) => {
+
+      const y =
+        top +
+        index * rowHeight;
+
+
+      const barWidth =
         (
-          date.getTime()
-          -
-          minDate
+          project.xp /
+          maxXP
         )
-        /
-        (
-          maxDate
-          -
-          minDate
-          || 1
-        )
-      )
-      *
-      (
-        width
-        -
-        padding * 2
-      )
-    );
-  };
+        *
+        graphWidth;
 
 
-  const scaleY = xp => {
-    return (
-      height
-      -
-      padding
-      -
-      (
-        xp / maxXp
-      )
-      *
-      (
-        height
-        -
-        padding * 2
-      )
-    );
-  };
+      /*
+        Background track
+      */
+
+      const track =
+        createSVG(
+          'rect',
+          {
+            x: left,
+            y,
+            width: graphWidth,
+            height: 20,
+            rx: 7,
+            class:
+              'chart-track'
+          }
+        );
 
 
-  /*
-    Axes
-  */
+      /*
+        Actual XP bar
+      */
 
-  svg.innerHTML += `
-    <line
-      x1="${padding}"
-      y1="${height - padding}"
-      x2="${width - padding}"
-      y2="${height - padding}"
-      stroke="#999"
-    />
-
-    <line
-      x1="${padding}"
-      y1="${padding}"
-      x2="${padding}"
-      y2="${height - padding}"
-      stroke="#999"
-    />
-  `;
+      const bar =
+        createSVG(
+          'rect',
+          {
+            x: left,
+            y,
+            width: barWidth,
+            height: 20,
+            rx: 7,
+            class:
+              'chart-bar'
+          }
+        );
 
 
-  /*
-    Line
-  */
+      /*
+        Project name
+      */
 
-  const pathData =
-    points
-      .map((point, index) => {
-        return `
-          ${index === 0 ? 'M' : 'L'}
-          ${scaleX(point.date)}
-          ${scaleY(point.total)}
-        `;
-      })
-      .join(' ');
+      const label =
+        createSVG(
+          'text',
+          {
+            x:
+              left - 12,
 
+            y:
+              y + 15,
 
-  svg.innerHTML += `
-    <path
-      d="${pathData}"
-      fill="none"
-      stroke="#2563eb"
-      stroke-width="3"
-      stroke-linejoin="round"
-      stroke-linecap="round"
-    />
-  `;
+            'text-anchor':
+              'end',
+
+            class:
+              'chart-label'
+          }
+        );
 
 
-  /*
-    Points
-  */
+      label.textContent =
+        project.name;
 
-  points.forEach(point => {
-    svg.innerHTML += `
-      <circle
-        cx="${scaleX(point.date)}"
-        cy="${scaleY(point.total)}"
-        r="4"
-        fill="#2563eb"
-      >
-        <title>
-          ${point.path}
-          | +${fmtXP(point.amount)}
-          | Total: ${fmtXP(point.total)}
-        </title>
-      </circle>
-    `;
-  });
+
+      /*
+        XP value
+      */
+
+      const value =
+        createSVG(
+          'text',
+          {
+            x:
+              left +
+              barWidth +
+              10,
+
+            y:
+              y + 15,
+
+            class:
+              'chart-value'
+          }
+        );
+
+
+      value.textContent =
+        fmtXP(
+          project.xp
+        );
+
+
+      /*
+        Tooltip
+      */
+
+      const title =
+        createSVG(
+          'title'
+        );
+
+
+      title.textContent =
+        `${project.name}: ${fmtXP(project.xp)}`;
+
+
+      bar.appendChild(
+        title
+      );
+
+
+      svg.appendChild(
+        track
+      );
+
+      svg.appendChild(
+        bar
+      );
+
+      svg.appendChild(
+        label
+      );
+
+      svg.appendChild(
+        value
+      );
+    }
+  );
 }
 
 
+
 /*
-  ==================================================
-  PASS / FAIL GRAPH
-  ==================================================
+  ==========================================
+  AUDIT SVG GRAPH
+  ==========================================
 */
 
-function drawPassFailGraph(
-  pass,
-  fail
+function drawAuditGraph(
+  auditUp,
+  auditDown
 ) {
+
   const svg =
     document.getElementById(
-      'passfail-graph'
+      'audit-ratio-graph'
     );
 
-  if (!svg) {
-    return;
-  }
+  if (!svg) return;
+
 
   svg.innerHTML = '';
 
-  const width = 420;
-  const height = 260;
-  const padding = 40;
 
-  const max =
-    Math.max(
-      pass,
-      fail,
+  const width = 520;
+  const height = 420;
+
+
+  const centerX =
+    width / 2;
+
+  const centerY =
+    180;
+
+
+  const radius = 95;
+
+  const circumference =
+    2 * Math.PI * radius;
+
+
+  const ratio =
+    auditDown > 0
+      ? auditUp / auditDown
+      : 0;
+
+
+  /*
+    Cap visual progress at 100%.
+    Ratio number can still be above 1.
+  */
+
+  const progress =
+    Math.min(
+      ratio,
       1
     );
 
-  const availableHeight =
-    height - padding * 2;
+
+  /*
+    Track
+  */
+
+  const track =
+    createSVG(
+      'circle',
+      {
+        cx: centerX,
+        cy: centerY,
+        r: radius,
+        class:
+          'donut-track'
+      }
+    );
 
 
-  const passHeight =
-    (pass / max)
-    *
-    availableHeight;
+  /*
+    Progress circle
+  */
 
-  const failHeight =
-    (fail / max)
-    *
-    availableHeight;
+  const ring =
+    createSVG(
+      'circle',
+      {
+        cx: centerX,
+        cy: centerY,
+        r: radius,
 
+        class:
+          'donut-progress',
 
-  svg.innerHTML = `
+        'stroke-dasharray':
+          circumference,
 
-    <line
-      x1="${padding}"
-      y1="${height - padding}"
-      x2="${width - padding}"
-      y2="${height - padding}"
-      stroke="#999"
-    />
+        'stroke-dashoffset':
+          circumference *
+          (1 - progress),
 
-
-    <rect
-      x="100"
-      y="${height - padding - passHeight}"
-      width="80"
-      height="${passHeight}"
-      rx="8"
-      fill="#16a34a"
-    />
-
-    <text
-      x="140"
-      y="${height - padding - passHeight - 8}"
-      text-anchor="middle"
-      fill="#222"
-    >
-      ${pass}
-    </text>
-
-    <text
-      x="140"
-      y="${height - padding + 20}"
-      text-anchor="middle"
-      fill="#444"
-    >
-      PASS
-    </text>
+        transform:
+          `rotate(-90 ${centerX} ${centerY})`
+      }
+    );
 
 
-    <rect
-      x="240"
-      y="${height - padding - failHeight}"
-      width="80"
-      height="${failHeight}"
-      rx="8"
-      fill="#dc2626"
-    />
+  /*
+    Ratio number
+  */
 
-    <text
-      x="280"
-      y="${height - padding - failHeight - 8}"
-      text-anchor="middle"
-      fill="#222"
-    >
-      ${fail}
-    </text>
+  const number =
+    createSVG(
+      'text',
+      {
+        x: centerX,
+        y:
+          centerY + 12,
 
-    <text
-      x="280"
-      y="${height - padding + 20}"
-      text-anchor="middle"
-      fill="#444"
-    >
-      FAIL
-    </text>
-  `;
+        'text-anchor':
+          'middle',
+
+        class:
+          'donut-number'
+      }
+    );
+
+
+  number.textContent =
+    auditDown > 0
+      ? ratio.toFixed(1)
+      : 'N/A';
+
+
+  /*
+    Label
+  */
+
+  const label =
+    createSVG(
+      'text',
+      {
+        x:
+          centerX,
+
+        y:
+          centerY + 45,
+
+        'text-anchor':
+          'middle',
+
+        class:
+          'donut-label'
+      }
+    );
+
+
+  label.textContent =
+    'AUDIT RATIO';
+
+
+  /*
+    Given / received values
+  */
+
+  const details =
+    createSVG(
+      'text',
+      {
+        x:
+          centerX,
+
+        y: 345,
+
+        'text-anchor':
+          'middle',
+
+        class:
+          'chart-label'
+      }
+    );
+
+
+  details.textContent =
+    `${fmtXP(auditUp)} given · ${fmtXP(auditDown)} received`;
+
+
+  svg.appendChild(
+    track
+  );
+
+  svg.appendChild(
+    ring
+  );
+
+  svg.appendChild(
+    number
+  );
+
+  svg.appendChild(
+    label
+  );
+
+  svg.appendChild(
+    details
+  );
+}
+
+
+
+/*
+  ==========================================
+  SVG HELPER
+  ==========================================
+*/
+
+function createSVG(
+  tag,
+  attributes = {}
+) {
+
+  const element =
+    document.createElementNS(
+      'http://www.w3.org/2000/svg',
+      tag
+    );
+
+
+  Object.entries(
+    attributes
+  ).forEach(
+    ([key, value]) => {
+
+      element.setAttribute(
+        key,
+        value
+      );
+    }
+  );
+
+
+  return element;
 }
